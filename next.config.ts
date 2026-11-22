@@ -3,17 +3,6 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 initOpenNextCloudflareForDev();
 
-const nextConfig: NextConfig = {
-  cacheComponents: false,
-  partialPrefetching: false,
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
