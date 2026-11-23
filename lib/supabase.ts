@@ -15,6 +15,7 @@ export type Game = {
   name: string;
   publisher: string | null;
   icon_emoji: string;
+  image_url: string | null;
   color_theme: string;
   category: string;
   input_type: string;

@@ -48,6 +48,10 @@ export default function Home() {
   const [liveProducts, setLiveProducts] = useState<DBProduct[]>([]);
   const [liveLoading, setLiveLoading] = useState(true);
 
+  // All games from Supabase (UniPlay sync)
+  const [allGames, setAllGames] = useState<DBGame[]>([]);
+  const [gamesLoading, setGamesLoading] = useState(true);
+
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 6000);
     return () => clearInterval(id);
@@ -65,6 +69,16 @@ export default function Home() {
       setLiveLoading(false);
     }
     loadLive();
+  }, []);
+
+  // Fetch ALL games from Supabase (UniPlay + manual)
+  useEffect(() => {
+    async function loadAll() {
+      const { data } = await supabase.from("games").select("*").eq("is_active", true).order("sort_order");
+      setAllGames((data || []) as DBGame[]);
+      setGamesLoading(false);
+    }
+    loadAll();
   }, []);
 
   const changeSlide = (dir: number) => setSlide((s) => (s + dir + SLIDES.length) % SLIDES.length);
@@ -252,6 +266,45 @@ export default function Home() {
           </div>
         </div>
       ))}
+
+      {/* ═══════════ ALL GAMES FROM SUPABASE (UniPlay + manual) ═══════════ */}
+      {!gamesLoading && allGames.length > 0 && (
+        <div className="section">
+          <div className="sec-card" style={{ border: "2px solid var(--accent-2)", background: "linear-gradient(135deg,rgba(34,114,220,.08),var(--bg-card))" }}>
+            <div className="sec-head">
+              <h2>
+                <span style={{ color: "#ef4444" }}>🔴 LIVE</span> Semua Game ({allGames.length})
+                <span style={{ fontSize: ".7rem", fontWeight: 700, color: "var(--accent-light)", marginLeft: 8, padding: "3px 8px", background: "rgba(74,141,255,.15)", borderRadius: 6 }}>
+                  📡 Auto-synced UniPlay + manual
+                </span>
+              </h2>
+            </div>
+            <div className="games-grid">
+              {allGames.map((g) => (
+                <div key={g.id} className="gg-card">
+                  <div className="gg-ic" style={{
+                    background: g.image_url
+                      ? `url(${g.image_url}) center/cover`
+                      : "linear-gradient(135deg,#2272dc,#4a8dff)",
+                  }}>
+                    {!g.image_url && <span style={{ fontSize: "3rem" }}>{g.icon_emoji}</span>}
+                  </div>
+                  <div className="gg-info">
+                    <div className="gg-name">{g.name}</div>
+                    <div className="gg-pub">{g.publisher || "—"}</div>
+                    <div className="gg-price" style={{ fontSize: ".65rem", color: "var(--text-mute)" }}>
+                      {g.category} · {g.input_type}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="sec-foot" style={{ fontSize: ".72rem", color: "var(--text-mute)", marginTop: 12 }}>
+              ✨ Sync tiap 15 menit dari UniPlay via Railway/VPS worker
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="feats">
         {[
