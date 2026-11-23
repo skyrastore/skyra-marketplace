@@ -147,31 +147,40 @@ export default function Home() {
         <div className="hero-slider">
           <div className="slides" style={{ transform: `translateX(-${slide * 100}%)` }}>
             {promos.length > 0 ? (
-              promos.map((p, i) => (
-                <div
-                  key={i}
-                  className="slide"
-                  style={{ background: p.background_gradient || "linear-gradient(135deg,#1a52b8,#2272dc,#4a8dff)" }}
-                >
-                  {p.image_url && (
-                    <div className="slide-bg">
-                      <img src={p.image_url} alt={p.title} />
-                    </div>
-                  )}
-                  <div className="slide-content">
-                    <div className="slide-brand">SKYRA STORE</div>
-                    <div className="slide-title" style={{ whiteSpace: "pre-line" }}>
-                      {p.title}
-                    </div>
-                    {p.subtitle && <div className="slide-sub">{p.subtitle}</div>}
-                    {p.cta_url && p.cta_text && (
-                      <a href={p.cta_url} className="slide-cta">
-                        {p.cta_text}
-                      </a>
+              promos.map((p, i) => {
+                const slideInner = (
+                  <>
+                    {p.image_url && (
+                      <div className="slide-bg">
+                        <img src={p.image_url} alt={p.title} />
+                      </div>
                     )}
+                    <div className="slide-content">
+                      <div className="slide-brand">SKYRA STORE</div>
+                      <div className="slide-title" style={{ whiteSpace: "pre-line" }}>
+                        {p.title}
+                      </div>
+                      {p.subtitle && <div className="slide-sub">{p.subtitle}</div>}
+                      {p.cta_text && (
+                        <span className="slide-cta">
+                          {p.cta_text} →
+                        </span>
+                      )}
+                    </div>
+                    {!p.image_url && <div className="slide-art">✨</div>}
+                  </>
+                );
+                const bg = p.background_gradient || "linear-gradient(135deg,#1a52b8,#2272dc,#4a8dff)";
+                return p.cta_url ? (
+                  <Link key={i} href={p.cta_url} className="slide slide-link" style={{ background: bg }}>
+                    {slideInner}
+                  </Link>
+                ) : (
+                  <div key={i} className="slide" style={{ background: bg }}>
+                    {slideInner}
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="slide slide-default">
                 <div className="slide-content">
