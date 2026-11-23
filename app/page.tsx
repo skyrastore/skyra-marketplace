@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { supabase, fmtIDR, type Game as DBGame, type Product as DBProduct } from "@/lib/supabase";
 
 type Slide = { bg: string; brand: string; title: string; sub: string; period: string; cta: string; emoji: string };
 const SLIDES: Slide[] = [
@@ -42,9 +43,28 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const popRef = useRef<HTMLDivElement>(null);
 
+  // Live data from Supabase
+  const [liveGame, setLiveGame] = useState<DBGame | null>(null);
+  const [liveProducts, setLiveProducts] = useState<DBProduct[]>([]);
+  const [liveLoading, setLiveLoading] = useState(true);
+
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 6000);
     return () => clearInterval(id);
+  }, []);
+
+  // Fetch Roblox from Supabase on mount
+  useEffect(() => {
+    async function loadLive() {
+      const { data: g } = await supabase.from("games").select("*").eq("slug", "roblox").eq("is_active", true).single();
+      if (g) {
+        const { data: p } = await supabase.from("products").select("*").eq("game_id", g.id).eq("is_available", true).order("sort_order");
+        setLiveGame(g as DBGame);
+        setLiveProducts((p || []) as DBProduct[]);
+      }
+      setLiveLoading(false);
+    }
+    loadLive();
   }, []);
 
   const changeSlide = (dir: number) => setSlide((s) => (s + dir + SLIDES.length) % SLIDES.length);
@@ -130,6 +150,46 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* ═══════════ LIVE FROM SUPABASE ═══════════ */}
+      {!liveLoading && liveGame && (
+        <div className="section">
+          <div className="sec-card" style={{ border: "2px solid var(--accent-2)", background: "linear-gradient(135deg,rgba(34,114,220,.1),var(--bg-card))" }}>
+            <div className="sec-head">
+              <h2>
+                <span style={{ color: "#ef4444" }}>🔴 LIVE</span> — {liveGame.name}
+                <span style={{ fontSize: ".7rem", fontWeight: 700, color: "var(--accent-light)", marginLeft: 8, padding: "3px 8px", background: "rgba(74,141,255,.15)", borderRadius: 6 }}>
+                  📡 Data dari Supabase
+                </span>
+              </h2>
+              <a href="#" className="sec-more">Lihat Semua ›</a>
+            </div>
+            {liveGame.instructions && (
+              <p style={{ fontSize: ".82rem", color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.5, padding: "10px 14px", background: "var(--bg-elev)", borderRadius: 8 }}>
+                💡 {liveGame.instructions}
+              </p>
+            )}
+            <div className="games-grid">
+              {liveProducts.map((p) => (
+                <div key={p.id} className="gg-card">
+                  <div className={`gg-ic ${liveGame.color_theme}`}>
+                    {liveGame.icon_emoji}
+                    {p.is_hot && <span className="gg-promo hot">HOT</span>}
+                  </div>
+                  <div className="gg-info">
+                    <div className="gg-name">{p.name}</div>
+                    <div className="gg-pub">{p.amount} {p.unit}</div>
+                    <div className="gg-price"><b>{fmtIDR(p.price_idr)}</b></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="sec-foot" style={{ fontSize: ".72rem", color: "var(--text-mute)", marginTop: 12 }}>
+              ✨ Edit harga/produk di Supabase Table Editor → otomatis update di sini
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="section">
         <div className="sec-head">
