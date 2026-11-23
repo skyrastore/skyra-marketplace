@@ -1,18 +1,5 @@
 import type { Metadata } from "next";
-import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
-
-const fredoka = Fredoka({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-fredoka",
-});
-
-const nunito = Nunito({
-  weight: ["400", "500", "600", "700", "800", "900"],
-  subsets: ["latin"],
-  variable: "--font-nunito",
-});
 
 export const metadata: Metadata = {
   title: "Skyra Store — Top Up Game Termurah & Terpercaya",
@@ -33,7 +20,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={`${fredoka.variable} ${nunito.variable}`}>
+    <html lang="id">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

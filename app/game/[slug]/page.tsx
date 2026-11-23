@@ -49,7 +49,7 @@ export default function GameDetailPage() {
   if (!game) {
     return (
       <div style={{ textAlign: "center", padding: 80, color: "#fff" }}>
-        <h2 style={{ fontFamily: "var(--font-fredoka)", marginBottom: 16 }}>Game tidak ditemukan</h2>
+        <h2 style={{ fontFamily: "'Fredoka'", marginBottom: 16 }}>Game tidak ditemukan</h2>
         <Link href="/" style={{ color: "#7bc3ff" }}>← Kembali ke beranda</Link>
       </div>
     );
@@ -140,7 +140,7 @@ export default function GameDetailPage() {
             </div>
             <h1
               style={{
-                fontFamily: "var(--font-fredoka)",
+                fontFamily: "'Fredoka'",
                 fontSize: "clamp(1.5rem,3vw,2.2rem)",
                 fontWeight: 700,
                 lineHeight: 1.1,
@@ -186,7 +186,7 @@ export default function GameDetailPage() {
                   boxShadow: "0 6px 24px rgba(0,0,0,.35)",
                 }}
               >
-                <h3 style={{ fontFamily: "var(--font-fredoka)", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
+                <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
                   1. Masukkan Data Akun
                 </h3>
                 <div style={{ display: "grid", gap: 12 }}>
@@ -233,7 +233,7 @@ export default function GameDetailPage() {
                 boxShadow: "0 6px 24px rgba(0,0,0,.35)",
               }}
             >
-              <h3 style={{ fontFamily: "var(--font-fredoka)", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
+              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
                 {inputFields.length > 0 ? "2." : "1."} Pilih Paket
               </h3>
               {products.length === 0 ? (
@@ -283,7 +283,7 @@ export default function GameDetailPage() {
                           🔥 HOT
                         </span>
                       )}
-                      <div style={{ fontFamily: "var(--font-fredoka)", fontSize: "1rem", fontWeight: 700, marginBottom: 4 }}>
+                      <div style={{ fontFamily: "'Fredoka'", fontSize: "1rem", fontWeight: 700, marginBottom: 4 }}>
                         {p.name}
                       </div>
                       <div style={{ fontSize: ".92rem", fontWeight: 800, color: "#7bc3ff" }}>{fmtIDR(p.price_idr)}</div>
@@ -304,7 +304,7 @@ export default function GameDetailPage() {
                 boxShadow: "0 6px 24px rgba(0,0,0,.35)",
               }}
             >
-              <h3 style={{ fontFamily: "var(--font-fredoka)", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
+              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
                 {inputFields.length > 0 ? "3." : "2."} Metode Pembayaran
               </h3>
               <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))" }}>
@@ -345,7 +345,7 @@ export default function GameDetailPage() {
               boxShadow: "0 8px 30px rgba(0,0,0,.45)",
             }}
           >
-            <h3 style={{ fontFamily: "var(--font-fredoka)", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
+            <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
               📋 Ringkasan Order
             </h3>
             {[
@@ -387,7 +387,7 @@ export default function GameDetailPage() {
                   ? "linear-gradient(135deg,#1452b4,#2272dc,#4a8dff)"
                   : "rgba(255,255,255,.15)",
                 color: "#fff",
-                fontFamily: "var(--font-fredoka)",
+                fontFamily: "'Fredoka'",
                 fontSize: ".95rem",
                 fontWeight: 600,
                 cursor: selected ? "pointer" : "not-allowed",
