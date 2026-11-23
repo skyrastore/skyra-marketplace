@@ -15,6 +15,7 @@ const CATEGORIES = [
 
 export default function Home() {
   const [splashHide, setSplashHide] = useState(false);
+  const [isReturning, setIsReturning] = useState(false);
   const [slide, setSlide] = useState(0);
   const [cat, setCat] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
@@ -22,8 +23,13 @@ export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Hide splash after animation
+  // Hide splash after animation + track returning visitor
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const visited = sessionStorage.getItem("skyra_visited");
+      if (visited) setIsReturning(true);
+      sessionStorage.setItem("skyra_visited", "1");
+    }
     const t = setTimeout(() => setSplashHide(true), 3200);
     return () => clearTimeout(t);
   }, []);
@@ -112,8 +118,17 @@ export default function Home() {
             <img src={LOGO_URL} alt="Skyra Store" />
           </div>
           <div className="splash-title">SKYRA STORE</div>
-          <div className="splash-sub">✨ SELAMAT DATANG, GAMER! ✨</div>
-          <div className="splash-tagline">Petualangan top-up favoritmu dimulai di sini</div>
+          {isReturning ? (
+            <>
+              <div className="splash-sub">🛒 SILAHKAN LANJUT BELANJA! 🛒</div>
+              <div className="splash-tagline">Promo & game baru menantimu, happy top-up!</div>
+            </>
+          ) : (
+            <>
+              <div className="splash-sub">✨ SELAMAT DATANG, GAMER! ✨</div>
+              <div className="splash-tagline">Petualangan top-up favoritmu dimulai di sini</div>
+            </>
+          )}
         </div>
       )}
 
