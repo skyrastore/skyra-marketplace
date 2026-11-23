@@ -108,12 +108,12 @@ export default function GameDetailPage() {
             gap: 20,
             alignItems: "center",
             padding: 24,
-            background: "rgba(255,255,255,.14)",
-            backdropFilter: "blur(16px)",
-            border: "1.5px solid rgba(255,255,255,.22)",
+            background: "rgba(9,20,55,.92)",
+            border: "1.5px solid rgba(123,195,255,.3)",
             borderRadius: 20,
             marginBottom: 28,
             color: "#fff",
+            boxShadow: "0 8px 30px rgba(0,0,0,.4)",
           }}
         >
           <div
@@ -178,12 +178,12 @@ export default function GameDetailPage() {
               <div
                 style={{
                   padding: 22,
-                  background: "rgba(255,255,255,.14)",
-                  backdropFilter: "blur(16px)",
-                  border: "1.5px solid rgba(255,255,255,.22)",
+                  background: "rgba(9,20,55,.92)",
+                  border: "1.5px solid rgba(123,195,255,.3)",
                   borderRadius: 16,
                   marginBottom: 20,
                   color: "#fff",
+                  boxShadow: "0 6px 24px rgba(0,0,0,.35)",
                 }}
               >
                 <h3 style={{ fontFamily: "var(--font-fredoka)", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
@@ -206,8 +206,8 @@ export default function GameDetailPage() {
                           width: "100%",
                           padding: "12px 14px",
                           borderRadius: 10,
-                          background: "rgba(255,255,255,.14)",
-                          border: "1.5px solid rgba(255,255,255,.22)",
+                          background: "rgba(5,12,36,.9)",
+                          border: "1.5px solid rgba(123,195,255,.3)",
                           color: "#fff",
                           fontFamily: "inherit",
                           fontSize: ".88rem",
@@ -225,12 +225,12 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                background: "rgba(255,255,255,.14)",
-                backdropFilter: "blur(16px)",
-                border: "1.5px solid rgba(255,255,255,.22)",
+                background: "rgba(9,20,55,.92)",
+                border: "1.5px solid rgba(123,195,255,.3)",
                 borderRadius: 16,
                 marginBottom: 20,
                 color: "#fff",
+                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
               }}
             >
               <h3 style={{ fontFamily: "var(--font-fredoka)", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
@@ -255,8 +255,8 @@ export default function GameDetailPage() {
                       style={{
                         padding: 14,
                         borderRadius: 12,
-                        border: selected?.id === p.id ? "2px solid #7bc3ff" : "1.5px solid rgba(255,255,255,.22)",
-                        background: selected?.id === p.id ? "rgba(74,141,255,.3)" : "rgba(255,255,255,.1)",
+                        border: selected?.id === p.id ? "2px solid #7bc3ff" : "1.5px solid rgba(123,195,255,.25)",
+                        background: selected?.id === p.id ? "rgba(34,114,220,.55)" : "rgba(5,12,36,.88)",
                         color: "#fff",
                         cursor: "pointer",
                         fontFamily: "inherit",
@@ -297,11 +297,11 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                background: "rgba(255,255,255,.14)",
-                backdropFilter: "blur(16px)",
-                border: "1.5px solid rgba(255,255,255,.22)",
+                background: "rgba(9,20,55,.92)",
+                border: "1.5px solid rgba(123,195,255,.3)",
                 borderRadius: 16,
                 color: "#fff",
+                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
               }}
             >
               <h3 style={{ fontFamily: "var(--font-fredoka)", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
@@ -315,8 +315,8 @@ export default function GameDetailPage() {
                     style={{
                       padding: "12px 14px",
                       borderRadius: 10,
-                      border: payment === pm ? "2px solid #7bc3ff" : "1.5px solid rgba(255,255,255,.22)",
-                      background: payment === pm ? "rgba(74,141,255,.3)" : "rgba(255,255,255,.1)",
+                      border: payment === pm ? "2px solid #7bc3ff" : "1.5px solid rgba(123,195,255,.25)",
+                      background: payment === pm ? "rgba(34,114,220,.55)" : "rgba(5,12,36,.88)",
                       color: "#fff",
                       fontFamily: "inherit",
                       fontWeight: 800,
@@ -338,11 +338,11 @@ export default function GameDetailPage() {
               top: 90,
               alignSelf: "start",
               padding: 22,
-              background: "rgba(9,24,64,.65)",
-              backdropFilter: "blur(16px)",
-              border: "1.5px solid rgba(255,255,255,.22)",
+              background: "rgba(5,12,36,.96)",
+              border: "1.5px solid rgba(123,195,255,.35)",
               borderRadius: 16,
               color: "#fff",
+              boxShadow: "0 8px 30px rgba(0,0,0,.45)",
             }}
           >
             <h3 style={{ fontFamily: "var(--font-fredoka)", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
