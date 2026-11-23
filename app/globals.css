@@ -51,7 +51,7 @@ body{
     radial-gradient(ellipse 100% 60% at 50% 40%, #112060, #091840 70%),
     #060a1f;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-  animation:splashFadeOut .6s ease .5s forwards;
+  animation:splashFadeOut .7s ease 2.3s forwards;
   pointer-events:none;
 }
 .splash.hide{display:none}

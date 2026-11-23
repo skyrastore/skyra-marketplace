@@ -23,7 +23,7 @@ export default function Home() {
 
   // Hide splash after animation
   useEffect(() => {
-    const t = setTimeout(() => setSplashHide(true), 2000);
+    const t = setTimeout(() => setSplashHide(true), 3200);
     return () => clearTimeout(t);
   }, []);
 
