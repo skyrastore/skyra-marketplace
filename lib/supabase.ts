@@ -74,6 +74,18 @@ export async function fetchAllGames() {
   return (data || []) as Game[];
 }
 
+export type Promo = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  background_gradient: string | null;
+  cta_text: string | null;
+  cta_url: string | null;
+  is_active: boolean;
+  sort_order: number;
+};
+
 export function fmtIDR(n: number): string {
   return "Rp " + n.toLocaleString("id-ID");
 }

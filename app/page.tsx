@@ -1,335 +1,311 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { supabase, fmtIDR, type Game as DBGame, type Product as DBProduct } from "@/lib/supabase";
+import Link from "next/link";
+import { supabase, fmtIDR, type Game, type Promo } from "@/lib/supabase";
 
-type Slide = { bg: string; brand: string; title: string; sub: string; period: string; cta: string; emoji: string };
-const SLIDES: Slide[] = [
-  { bg: "slide-1", brand: "SKYRA STORE", title: "PILIH PAKETMU,\nHEMAT MAKSIMAL!", sub: "Diskon spesial semua Season Pass & Candle Sky — hemat sampai 15%", period: "📅 Periode: 23 Nov - 7 Des 2026", cta: "BACA SELENGKAPNYA", emoji: "☁️" },
-  { bg: "slide-2", brand: "PROMO SPESIAL", title: "HEARTOPIA LAUNCH\nDISKON 20%!", sub: "Game baru, harga perkenalan — buruan sebelum habis", period: "🔥 Terbatas sampai 30 Nov", cta: "AMBIL PROMO", emoji: "💖" },
-  { bg: "slide-3", brand: "CASHBACK HARIAN", title: "BAYAR PAKAI QRIS,\nDAPAT CASHBACK 5%", sub: "Berlaku setiap hari untuk semua top-up game", period: "💚 Cashback otomatis masuk saldo", cta: "PELAJARI LEBIH", emoji: "💳" },
-];
+const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 
-type Game = { id: string; name: string; pub: string; icon: string; theme: string; price: string; badge?: string; offer?: boolean };
-const SELULER: Game[] = [
-  { id: "mlbb", name: "Mobile Legends: BB", pub: "Moonton", icon: "⚔️", theme: "mlbb", price: "1.810", badge: "hot" },
-  { id: "ff", name: "Free Fire", pub: "Garena", icon: "🔥", theme: "ff", price: "1.000", badge: "hot" },
-  { id: "bloodstrike", name: "Blood Strike", pub: "NetEase", icon: "⚡", theme: "bloodstrike", price: "14.000" },
-  { id: "magicchess", name: "Magic Chess: Go Go", pub: "Vizta Games", icon: "♟️", theme: "magicchess", price: "2.004" },
-  { id: "hsr", name: "Honkai: Star Rail", pub: "HoYoverse", icon: "⭐", theme: "hsr", price: "16.000", badge: "promo", offer: true },
-  { id: "efootball", name: "eFootball Manager", pub: "Nordeus", icon: "⚽", theme: "efootball", price: "27.550", badge: "promo", offer: true },
-  { id: "roblox", name: "Roblox", pub: "Roblox Corp", icon: "🎲", theme: "roblox", price: "16.000", badge: "pop" },
-  { id: "sky", name: "Sky: CotL", pub: "TGC", icon: "☁️", theme: "sky", price: "49.860", badge: "hot" },
-  { id: "heartopia", name: "Heartopia", pub: "Indie", icon: "💖", theme: "heartopia", price: "15.000", badge: "new" },
-  { id: "genshin", name: "Genshin Impact", pub: "HoYoverse", icon: "⭐", theme: "genshin", price: "15.500" },
-  { id: "pubg", name: "PUBG Mobile", pub: "Tencent", icon: "🎯", theme: "pubg", price: "12.500" },
-  { id: "cod", name: "Call of Duty: M", pub: "Activision", icon: "💥", theme: "cod", price: "14.000" },
-];
-const PC: Game[] = [
-  { id: "steam", name: "Steam Wallet", pub: "Valve", icon: "🎮", theme: "steam", price: "15.000", badge: "hot" },
-  { id: "valorant", name: "Valorant", pub: "Riot Games", icon: "💥", theme: "valorant", price: "13.500", badge: "hot" },
-  { id: "lol", name: "League of Legends", pub: "Riot Games", icon: "⚔️", theme: "lol", price: "12.000" },
-  { id: "dota", name: "Dota 2", pub: "Valve", icon: "🛡️", theme: "dota", price: "15.000" },
-  { id: "psn", name: "PSN Card", pub: "Sony", icon: "🎮", theme: "psn", price: "75.000", badge: "promo", offer: true },
-  { id: "genshinpc", name: "Genshin Impact PC", pub: "HoYoverse", icon: "⭐", theme: "genshin", price: "15.500" },
-  { id: "hsrpc", name: "Honkai Star Rail PC", pub: "HoYoverse", icon: "⭐", theme: "hsr", price: "16.000" },
-  { id: "efootballpc", name: "eFootball PC", pub: "Konami", icon: "⚽", theme: "efootball", price: "14.000" },
-  { id: "netflix", name: "Netflix", pub: "Netflix", icon: "🎬", theme: "netflix", price: "54.000" },
-  { id: "spotify", name: "Spotify Premium", pub: "Spotify AB", icon: "🎵", theme: "spotify", price: "54.990" },
-  { id: "google", name: "Google Play Card", pub: "Google", icon: "🎮", theme: "steam", price: "20.000" },
-  { id: "itunes", name: "iTunes Gift Card", pub: "Apple", icon: "🎮", theme: "psn", price: "75.000" },
+const CATEGORIES = [
+  { key: "all", label: "Semua", icon: "🎮" },
+  { key: "mobile", label: "Mobile Games", icon: "📱" },
+  { key: "pc", label: "PC Games", icon: "💻" },
+  { key: "voucher", label: "Voucher", icon: "🎫" },
+  { key: "ppob", label: "PPOB", icon: "⚡" },
 ];
 
 export default function Home() {
+  const [splashHide, setSplashHide] = useState(false);
   const [slide, setSlide] = useState(0);
-  const popRef = useRef<HTMLDivElement>(null);
+  const [cat, setCat] = useState<string>("all");
+  const [promos, setPromos] = useState<Promo[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Live data from Supabase
-  const [liveGame, setLiveGame] = useState<DBGame | null>(null);
-  const [liveProducts, setLiveProducts] = useState<DBProduct[]>([]);
-  const [liveLoading, setLiveLoading] = useState(true);
-
-  // All games from Supabase (UniPlay sync)
-  const [allGames, setAllGames] = useState<DBGame[]>([]);
-  const [gamesLoading, setGamesLoading] = useState(true);
-
+  // Hide splash after animation
   useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 6000);
+    const t = setTimeout(() => setSplashHide(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Fetch promos + games
+  useEffect(() => {
+    async function load() {
+      const [{ data: p }, { data: g }] = await Promise.all([
+        supabase.from("promos").select("*").eq("is_active", true).order("sort_order"),
+        supabase.from("games").select("*").eq("is_active", true).order("name"),
+      ]);
+      setPromos((p || []) as Promo[]);
+      setGames((g || []) as Game[]);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  // Auto-slide carousel (every 6s if there are promos)
+  useEffect(() => {
+    if (promos.length < 2) return;
+    const id = setInterval(() => setSlide((s) => (s + 1) % promos.length), 6000);
     return () => clearInterval(id);
-  }, []);
+  }, [promos.length]);
 
-  // Fetch Roblox from Supabase on mount
+  // Stars effect
   useEffect(() => {
-    async function loadLive() {
-      const { data: g } = await supabase.from("games").select("*").eq("slug", "roblox").eq("is_active", true).single();
-      if (g) {
-        const { data: p } = await supabase.from("products").select("*").eq("game_id", g.id).eq("is_available", true).order("sort_order");
-        setLiveGame(g as DBGame);
-        setLiveProducts((p || []) as DBProduct[]);
+    const c = document.getElementById("stars") as HTMLCanvasElement | null;
+    if (!c) return;
+    const ctx = c.getContext("2d")!;
+    let stars: { x: number; y: number; r: number; ph: number; sp: number }[] = [];
+    function resize() {
+      c!.width = window.innerWidth;
+      c!.height = window.innerHeight;
+      make();
+    }
+    function make() {
+      stars = [];
+      const n = Math.min(Math.max(Math.floor((c!.width * c!.height) / 9000), 50), 120);
+      for (let i = 0; i < n; i++)
+        stars.push({
+          x: Math.random() * c!.width,
+          y: Math.random() * c!.height * 0.55,
+          r: Math.random() * 1.3 + 0.3,
+          ph: Math.random() * Math.PI * 2,
+          sp: Math.random() * 0.01 + 0.004,
+        });
+    }
+    function draw(t: number) {
+      ctx.clearRect(0, 0, c!.width, c!.height);
+      for (const s of stars) {
+        const a = 0.2 + 0.7 * (0.5 + 0.5 * Math.sin(t * 0.001 * s.sp * 60 + s.ph));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, 6.283);
+        ctx.fillStyle = `rgba(255,255,255,${a.toFixed(2)})`;
+        ctx.fill();
       }
-      setLiveLoading(false);
+      requestAnimationFrame(draw);
     }
-    loadLive();
+    window.addEventListener("resize", resize);
+    resize();
+    requestAnimationFrame(draw);
+    return () => window.removeEventListener("resize", resize);
   }, []);
 
-  // Fetch ALL games from Supabase (UniPlay + manual)
-  useEffect(() => {
-    async function loadAll() {
-      const { data } = await supabase.from("games").select("*").eq("is_active", true).order("sort_order");
-      setAllGames((data || []) as DBGame[]);
-      setGamesLoading(false);
-    }
-    loadAll();
-  }, []);
+  const slideCount = promos.length || 1; // 1 fallback for default slide
+  const changeSlide = (dir: number) => setSlide((s) => (s + dir + slideCount) % slideCount);
 
-  const changeSlide = (dir: number) => setSlide((s) => (s + dir + SLIDES.length) % SLIDES.length);
-  const popScroll = (dir: number) => popRef.current?.scrollBy({ left: dir * 240, behavior: "smooth" });
+  const filteredGames = cat === "all" ? games : games.filter((g) => g.category === cat);
 
   return (
     <>
+      {/* ═══════════ SPLASH SCREEN ═══════════ */}
+      {!splashHide && (
+        <div className="splash">
+          <div className="splash-logo">
+            <img src={LOGO_URL} alt="Skyra Store" />
+          </div>
+          <div className="splash-title">SKYRA STORE</div>
+          <div className="splash-sub">TOP UP · HEART · RUN</div>
+        </div>
+      )}
+
+      <canvas id="stars" aria-hidden="true"></canvas>
+
+      {/* ═══════════ TOP STRIP ═══════════ */}
       <div className="top-strip">
-        <div>⚡ INSTANT TOP UP! INSTANT PLAY!</div>
+        <div>⚡ INSTANT TOP UP · AMAN · TERPERCAYA</div>
         <div className="right">
           🇮🇩 Indonesia
-          <select defaultValue="ID"><option>ID</option><option>EN</option></select>
+          <div className="lang-sw">
+            <button className="on">ID</button>
+            <button>EN</button>
+          </div>
         </div>
       </div>
 
+      {/* ═══════════ NAVBAR ═══════════ */}
       <nav className="nav">
         <div className="nav-inner">
-          <a href="#" className="nav-logo">SKYRA STORE</a>
+          <Link href="/" className="nav-logo">
+            <img src={LOGO_URL} alt="Skyra" />
+            <span className="brand">SKYRA STORE</span>
+          </Link>
           <div className="nav-menu-main">
-            <a href="#">Game</a>
-            <a href="#">Promo & Acara</a>
-            <a href="#">Heart Service</a>
-            <a href="#">Lacak Order</a>
+            <Link href="/">Game</Link>
+            <Link href="/">Promo</Link>
+            <Link href="/">Lacak</Link>
+            <Link href="/">Bantuan</Link>
           </div>
           <div className="nav-search">
-            <input placeholder="Cari di Skyra Store..." />
+            <input placeholder="Cari game atau voucher..." />
           </div>
-          <a href="#" className="nav-cta">MASUK</a>
+          <Link href="/login" className="nav-cta">
+            MASUK
+          </Link>
         </div>
       </nav>
 
+      {/* ═══════════ HERO CAROUSEL ═══════════ */}
       <div className="hero-wrap">
         <div className="hero-slider">
           <div className="slides" style={{ transform: `translateX(-${slide * 100}%)` }}>
-            {SLIDES.map((s, i) => (
-              <div key={i} className={`slide ${s.bg}`}>
-                <div className="slide-left">
-                  <div className="slide-brand">{s.brand}</div>
-                  <div className="slide-title" style={{ whiteSpace: "pre-line" }}>{s.title}</div>
-                  <div className="slide-sub">{s.sub}</div>
-                  <div className="slide-period">{s.period}</div><br />
-                  <a href="#" className="slide-cta">{s.cta}</a>
+            {promos.length > 0 ? (
+              promos.map((p, i) => (
+                <div
+                  key={i}
+                  className="slide"
+                  style={{ background: p.background_gradient || "linear-gradient(135deg,#1a52b8,#2272dc,#4a8dff)" }}
+                >
+                  {p.image_url && (
+                    <div className="slide-bg">
+                      <img src={p.image_url} alt={p.title} />
+                    </div>
+                  )}
+                  <div className="slide-content">
+                    <div className="slide-brand">SKYRA STORE</div>
+                    <div className="slide-title" style={{ whiteSpace: "pre-line" }}>
+                      {p.title}
+                    </div>
+                    {p.subtitle && <div className="slide-sub">{p.subtitle}</div>}
+                    {p.cta_url && p.cta_text && (
+                      <a href={p.cta_url} className="slide-cta">
+                        {p.cta_text}
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <div className="slide-right">{s.emoji}</div>
+              ))
+            ) : (
+              <div className="slide slide-default">
+                <div className="slide-content">
+                  <div className="slide-brand">SKYRA STORE</div>
+                  <div className="slide-title">Top Up Game Favoritmu</div>
+                  <div className="slide-sub">Hemat · Cepat · Aman. QRIS, PayPal, Wise — proses instant.</div>
+                </div>
+                <div className="slide-art">🎮</div>
               </div>
-            ))}
-          </div>
-          <button className="slider-nav prev" onClick={() => changeSlide(-1)}>‹</button>
-          <button className="slider-nav next" onClick={() => changeSlide(1)}>›</button>
-          <div className="slider-dots">
-            {SLIDES.map((_, i) => (
-              <button key={i} className={`dot ${slide === i ? "on" : ""}`} onClick={() => setSlide(i)} aria-label={`Slide ${i + 1}`} />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="section">
-        <div className="sec-card">
-          <div className="sec-head"><h2>Exclusive Offers</h2><a href="#" className="sec-more">Lainnya ›</a></div>
-          <div className="offers">
-            <div className="offer-card">
-              <div className="offer-head">
-                <div className="offer-ic mlbb">⚔️<span className="offer-disc">15%</span></div>
-                <div className="offer-info"><div className="offer-name">Mobile Legends: Bang Bang</div><div className="offer-sub">Weekly Diamond Pass</div></div>
-              </div>
-              <div className="offer-price-row"><div className="offer-price">IDR 25.500</div><div className="offer-orig">30.000</div></div>
-            </div>
-            <div className="offer-card">
-              <div className="offer-head">
-                <div className="offer-ic sky">☁️<span className="offer-disc">10%</span></div>
-                <div className="offer-info"><div className="offer-name">Sky: Children of the Light</div><div className="offer-sub">35 Season Candles</div></div>
-              </div>
-              <div className="offer-price-row"><div className="offer-price">IDR 144.900</div><div className="offer-orig">161.000</div></div>
-            </div>
-            <div className="offer-card">
-              <div className="offer-head">
-                <div className="offer-ic roblox">🎲<span className="offer-disc">8%</span></div>
-                <div className="offer-info"><div className="offer-name">Roblox</div><div className="offer-sub">500 Robux via Xbox</div></div>
-              </div>
-              <div className="offer-price-row"><div className="offer-price">IDR 73.600</div><div className="offer-orig">80.000</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════ LIVE FROM SUPABASE ═══════════ */}
-      {!liveLoading && liveGame && (
-        <div className="section">
-          <div className="sec-card" style={{ border: "2px solid var(--accent-2)", background: "linear-gradient(135deg,rgba(34,114,220,.1),var(--bg-card))" }}>
-            <div className="sec-head">
-              <h2>
-                <span style={{ color: "#ef4444" }}>🔴 LIVE</span> — {liveGame.name}
-                <span style={{ fontSize: ".7rem", fontWeight: 700, color: "var(--accent-light)", marginLeft: 8, padding: "3px 8px", background: "rgba(74,141,255,.15)", borderRadius: 6 }}>
-                  📡 Data dari Supabase
-                </span>
-              </h2>
-              <a href="#" className="sec-more">Lihat Semua ›</a>
-            </div>
-            {liveGame.instructions && (
-              <p style={{ fontSize: ".82rem", color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.5, padding: "10px 14px", background: "var(--bg-elev)", borderRadius: 8 }}>
-                💡 {liveGame.instructions}
-              </p>
             )}
-            <div className="games-grid">
-              {liveProducts.map((p) => (
-                <div key={p.id} className="gg-card">
-                  <div className={`gg-ic ${liveGame.color_theme}`}>
-                    {liveGame.icon_emoji}
-                    {p.is_hot && <span className="gg-promo hot">HOT</span>}
-                  </div>
-                  <div className="gg-info">
-                    <div className="gg-name">{p.name}</div>
-                    <div className="gg-pub">{p.amount} {p.unit}</div>
-                    <div className="gg-price"><b>{fmtIDR(p.price_idr)}</b></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="sec-foot" style={{ fontSize: ".72rem", color: "var(--text-mute)", marginTop: 12 }}>
-              ✨ Edit harga/produk di Supabase Table Editor → otomatis update di sini
-            </div>
           </div>
+          {promos.length > 1 && (
+            <>
+              <button className="slider-nav prev" onClick={() => changeSlide(-1)} aria-label="Previous slide">
+                ‹
+              </button>
+              <button className="slider-nav next" onClick={() => changeSlide(1)} aria-label="Next slide">
+                ›
+              </button>
+              <div className="slider-dots">
+                {promos.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`dot ${slide === i ? "on" : ""}`}
+                    onClick={() => setSlide(i)}
+                    aria-label={`Slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
 
+      {/* ═══════════ CATEGORY TABS ═══════════ */}
+      <div className="cats-wrap">
+        <div className="cats">
+          {CATEGORIES.map((c) => (
+            <button key={c.key} className={`cat ${cat === c.key ? "on" : ""}`} onClick={() => setCat(c.key)}>
+              <span className="ic">{c.icon}</span> {c.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ═══════════ GAME GRID (from Supabase LIVE) ═══════════ */}
       <div className="section">
         <div className="sec-head">
-          <h2>Game Populer</h2>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="scroll-btn" onClick={() => popScroll(-1)}>‹</button>
-            <button className="scroll-btn" onClick={() => popScroll(1)}>›</button>
-          </div>
+          <h2>
+            <span className="ic">🎮</span>
+            {cat === "all" ? "Semua Game" : CATEGORIES.find((c) => c.key === cat)?.label}
+          </h2>
+          <div className="meta">{loading ? "Loading..." : `${filteredGames.length} game`}</div>
         </div>
-        <div className="popular-wrap">
-          <div className="popular-scroll" ref={popRef}>
-            {[
-              { theme: "mlbb", emoji: "⚔️", logo: "MOBILE LEGENDS", name: "Mobile Legends: BB" },
-              { theme: "ff", emoji: "🔥", logo: "FREE FIRE", name: "Free Fire" },
-              { theme: "pb", emoji: "☁️", logo: "SKY: COTL", name: "Sky: Children of the Light" },
-              { theme: "efootball", emoji: "⚽", logo: "eFOOTBALL", name: "eFootball 2026" },
-              { theme: "roblox", emoji: "🎲", logo: "ROBLOX", name: "Roblox" },
-              { theme: "gta", emoji: "🚗", logo: "GTA VI", name: "Grand Theft Auto VI" },
-              { theme: "pubg", emoji: "🎯", logo: "PUBG MOBILE", name: "PUBG Mobile" },
-            ].map((p, i) => (
-              <div key={i} className="pop-card">
-                <div className={`pop-art ${p.theme}`}>
-                  <div className="pop-art-emoji">{p.emoji}</div>
-                  <div className="pop-art-logo">{p.logo}</div>
+
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,.7)" }}>
+            ⏳ Loading catalog...
+          </div>
+        ) : filteredGames.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,.7)" }}>
+            📭 Belum ada game di kategori ini.
+          </div>
+        ) : (
+          <div className="games-grid">
+            {filteredGames.map((g) => (
+              <Link href={`/game/${g.slug}`} key={g.id} className="gg-card">
+                <div
+                  className={g.image_url ? "gg-ic" : "gg-ic gg-ic-fallback"}
+                  style={g.image_url ? { backgroundImage: `url(${g.image_url})` } : {}}
+                >
+                  {!g.image_url && <span>{g.icon_emoji}</span>}
+                  {g.is_featured && <span className="gg-badge hot">HOT</span>}
                 </div>
-                <div className="pop-foot">
-                  <div className="pop-name">{p.name}</div>
-                  <button className="pop-btn">Top Up</button>
+                <div className="gg-info">
+                  <div className="gg-name">{g.name}</div>
+                  <div className="gg-pub">{g.publisher || "—"}</div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
-        </div>
+        )}
       </div>
 
-      {[
-        { title: "Game Seluler", items: SELULER },
-        { title: "Game PC & Console", items: PC },
-      ].map((sec, si) => (
-        <div className="section" key={si}>
-          <div className="sec-card">
-            <div className="sec-head"><h2>{sec.title}</h2><a href="#" className="sec-more">Lainnya ›</a></div>
-            <div className="games-grid">
-              {sec.items.map((g) => (
-                <div key={g.id} className="gg-card">
-                  <div className={`gg-ic ${g.theme}`}>
-                    {g.icon}
-                    {g.badge && <span className={`gg-promo ${g.badge}`}>{g.badge === "promo" ? "Promo" : g.badge.toUpperCase()}</span>}
-                  </div>
-                  <div className="gg-info">
-                    <div className="gg-name">{g.name}</div>
-                    <div className="gg-pub">{g.pub}</div>
-                    <div className="gg-price">dari <b>IDR {g.price}</b></div>
-                    {g.offer && <div className="gg-offer">Up To 5% Off</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="sec-foot"><button className="load-more">Lebih Banyak</button></div>
-          </div>
-        </div>
-      ))}
-
-      {/* ═══════════ ALL GAMES FROM SUPABASE (UniPlay + manual) ═══════════ */}
-      {!gamesLoading && allGames.length > 0 && (
-        <div className="section">
-          <div className="sec-card" style={{ border: "2px solid var(--accent-2)", background: "linear-gradient(135deg,rgba(34,114,220,.08),var(--bg-card))" }}>
-            <div className="sec-head">
-              <h2>
-                <span style={{ color: "#ef4444" }}>🔴 LIVE</span> Semua Game ({allGames.length})
-                <span style={{ fontSize: ".7rem", fontWeight: 700, color: "var(--accent-light)", marginLeft: 8, padding: "3px 8px", background: "rgba(74,141,255,.15)", borderRadius: 6 }}>
-                  📡 Auto-synced UniPlay + manual
-                </span>
-              </h2>
-            </div>
-            <div className="games-grid">
-              {allGames.map((g) => (
-                <div key={g.id} className="gg-card">
-                  <div className="gg-ic" style={{
-                    background: g.image_url
-                      ? `url(${g.image_url}) center/cover`
-                      : "linear-gradient(135deg,#2272dc,#4a8dff)",
-                  }}>
-                    {!g.image_url && <span style={{ fontSize: "3rem" }}>{g.icon_emoji}</span>}
-                  </div>
-                  <div className="gg-info">
-                    <div className="gg-name">{g.name}</div>
-                    <div className="gg-pub">{g.publisher || "—"}</div>
-                    <div className="gg-price" style={{ fontSize: ".65rem", color: "var(--text-mute)" }}>
-                      {g.category} · {g.input_type}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="sec-foot" style={{ fontSize: ".72rem", color: "var(--text-mute)", marginTop: 12 }}>
-              ✨ Sync tiap 15 menit dari UniPlay via Railway/VPS worker
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* ═══════════ FEATURES ═══════════ */}
       <div className="feats">
         {[
           { ic: "⚡", t: "Instant Delivery", d: "Otomatis proses <5 menit" },
-          { ic: "💰", t: "Harga Termurah", d: "Auto-check 10+ supplier" },
+          { ic: "💰", t: "Harga Termurah", d: "Auto-check multi supplier" },
           { ic: "🛡️", t: "Refund 100%", d: "Gagal = balik modal" },
           { ic: "⭐", t: "4.9/5 Rating", d: "1000+ customer puas" },
         ].map((f, i) => (
           <div key={i} className="feat">
             <div className="feat-ic">{f.ic}</div>
-            <div><div className="feat-t">{f.t}</div><div className="feat-d">{f.d}</div></div>
+            <div>
+              <div className="feat-t">{f.t}</div>
+              <div className="feat-d">{f.d}</div>
+            </div>
           </div>
         ))}
       </div>
 
+      {/* ═══════════ FOOTER ═══════════ */}
       <footer>
         <div className="cols">
           <div className="col">
-            <div className="brand-wrap"><span className="brand">SKYRA STORE</span></div>
-            <p>Top-up game terpercaya di Indonesia. Hemat, aman, instant. Dari Sky sampai Mobile Legends — semua ada.</p>
-            <p style={{ color: "var(--text-mute)", fontSize: ".72rem" }}>📸 @skyra_store2 · 💬 WhatsApp: 6285183346300</p>
+            <div className="brand-row">
+              <img src={LOGO_URL} alt="Skyra" />
+              <span>SKYRA STORE</span>
+            </div>
+            <p>Top-up game terpercaya untuk Sky: Children of the Light, Mobile Legends, Free Fire & lainnya. Hemat, instant, 24/7.</p>
+            <p style={{ color: "rgba(255,255,255,.5)", fontSize: ".72rem" }}>📸 @skyra_store2 · 💬 6285183346300</p>
           </div>
-          <div className="col"><h4>Layanan</h4><a href="#">Top Up Game</a><a href="#">Heart Service</a><a href="#">Run Service</a><a href="#">Voucher Game</a><a href="#">Gift Card</a></div>
-          <div className="col"><h4>Bantuan</h4><a href="#">Pusat Bantuan</a><a href="#">Cara Order</a><a href="#">Lacak Order</a><a href="#">Refund Policy</a><a href="#">FAQ</a></div>
-          <div className="col"><h4>Tentang</h4><a href="#">Tentang Kami</a><a href="#">Blog</a><a href="#">Promo & Acara</a><a href="#">Syarat Layanan</a><a href="#">Privasi</a></div>
+          <div className="col">
+            <h4>Layanan</h4>
+            <Link href="/">Top Up Game</Link>
+            <Link href="/">Heart Service</Link>
+            <Link href="/">Run Service</Link>
+            <Link href="/">Voucher</Link>
+          </div>
+          <div className="col">
+            <h4>Bantuan</h4>
+            <Link href="/">Cara Order</Link>
+            <Link href="/">Lacak Order</Link>
+            <Link href="/">Refund Policy</Link>
+            <Link href="/">FAQ</Link>
+          </div>
+          <div className="col">
+            <h4>Tentang</h4>
+            <Link href="/">Tentang Kami</Link>
+            <Link href="/">Blog</Link>
+            <Link href="/">Syarat Layanan</Link>
+            <Link href="/">Privasi</Link>
+          </div>
         </div>
         <div className="copy">© 2026 Skyra Store · All rights reserved</div>
       </footer>
