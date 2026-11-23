@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
+const poppins = Poppins({
+  weight: ["400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
+});
+
 export const metadata: Metadata = {
-  title: "Skyra Marketplace",
-  description: "Game top-up marketplace — cari harga termurah dari banyak provider",
+  title: "Skyra Store — Top Up Game Termurah & Terpercaya",
+  description:
+    "Top up game favoritmu dengan harga paling murah. QRIS, PayPal, Wise. Proses instant, refund guaranteed.",
 };
 
 export default function RootLayout({
@@ -12,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
-      <body className="antialiased min-h-screen flex flex-col">{children}</body>
+    <html lang="id" className={poppins.variable}>
+      <body>{children}</body>
     </html>
   );
 }
