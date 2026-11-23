@@ -17,6 +17,7 @@ export default function Home() {
   const [splashHide, setSplashHide] = useState(false);
   const [slide, setSlide] = useState(0);
   const [cat, setCat] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
   const [promos, setPromos] = useState<Promo[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +92,16 @@ export default function Home() {
   const slideCount = promos.length || 1; // 1 fallback for default slide
   const changeSlide = (dir: number) => setSlide((s) => (s + dir + slideCount) % slideCount);
 
-  const filteredGames = cat === "all" ? games : games.filter((g) => g.category === cat);
+  const q = search.trim().toLowerCase();
+  const filteredGames = games.filter((g) => {
+    if (cat !== "all" && g.category !== cat) return false;
+    if (!q) return true;
+    return (
+      g.name.toLowerCase().includes(q) ||
+      (g.publisher || "").toLowerCase().includes(q) ||
+      g.slug.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <>
@@ -134,7 +144,37 @@ export default function Home() {
             <Link href="/">Bantuan</Link>
           </div>
           <div className="nav-search">
-            <input placeholder="Cari game atau voucher..." />
+            <input
+              placeholder="Cari game atau voucher..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setSearch("");
+              }}
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+                style={{
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  border: 0,
+                  background: "rgba(255,255,255,.2)",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: ".9rem",
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            )}
           </div>
           <Link href="/login" className="nav-cta">
             MASUK
@@ -230,8 +270,12 @@ export default function Home() {
       <div className="section">
         <div className="sec-head">
           <h2>
-            <span className="ic">🎮</span>
-            {cat === "all" ? "Semua Game" : CATEGORIES.find((c) => c.key === cat)?.label}
+            <span className="ic">{search ? "🔍" : "🎮"}</span>
+            {search
+              ? `Hasil pencarian: "${search}"`
+              : cat === "all"
+              ? "Semua Game"
+              : CATEGORIES.find((c) => c.key === cat)?.label}
           </h2>
           <div className="meta">{loading ? "Loading..." : `${filteredGames.length} game`}</div>
         </div>
@@ -242,7 +286,9 @@ export default function Home() {
           </div>
         ) : filteredGames.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,.7)" }}>
-            📭 Belum ada game di kategori ini.
+            {search
+              ? `📭 Ga ada game yang cocok dengan "${search}". Coba kata lain ya.`
+              : "📭 Belum ada game di kategori ini."}
           </div>
         ) : (
           <div className="games-grid">
