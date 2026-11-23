@@ -112,7 +112,8 @@ export default function Home() {
             <img src={LOGO_URL} alt="Skyra Store" />
           </div>
           <div className="splash-title">SKYRA STORE</div>
-          <div className="splash-sub">TOP UP · HEART · RUN</div>
+          <div className="splash-sub">✨ SELAMAT DATANG, GAMER! ✨</div>
+          <div className="splash-tagline">Petualangan top-up favoritmu dimulai di sini</div>
         </div>
       )}
 
