@@ -77,6 +77,7 @@ export default function GameDetailPage() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [qty, setQty] = useState(1);
 
   const ADMIN_WA = "6285183346300";
 
@@ -136,15 +137,20 @@ export default function GameDetailPage() {
     }
   };
 
+  // Qty hanya aktif buat manual products — UniPlay fulfill satu-per-order
+  const isManualProduct = selected?.supplier === "manual";
+  const effectiveQty = isManualProduct ? qty : 1;
+  const subtotal = selected ? selected.price_idr * effectiveQty : 0;
+
   const discountAmount = (() => {
-    if (!voucherApplied || !selected) return 0;
+    if (!voucherApplied || !subtotal) return 0;
     if (voucherApplied.discount_type === "percentage") {
-      const d = Math.floor((selected.price_idr * voucherApplied.discount_value) / 100);
+      const d = Math.floor((subtotal * voucherApplied.discount_value) / 100);
       return voucherApplied.max_discount_idr ? Math.min(d, voucherApplied.max_discount_idr) : d;
     }
     return voucherApplied.discount_value;
   })();
-  const finalPrice = selected ? Math.max(0, selected.price_idr - discountAmount) : 0;
+  const finalPrice = Math.max(0, subtotal - discountAmount);
 
   useEffect(() => {
     async function load() {
@@ -200,7 +206,8 @@ export default function GameDetailPage() {
       `━━━━━━━━━━━━━━━━━\n` +
       `🎮 Game: *${g.name}*\n` +
       `💎 Paket: *${selected?.name || "-"}*\n` +
-      `💵 Harga: ${selected ? fmtIDR(selected.price_idr) : "-"}\n` +
+      (isManualProduct && qty > 1 ? `🔢 Qty: ${qty}×\n` : "") +
+      `💵 Subtotal: ${fmtIDR(subtotal)}\n` +
       (voucherApplied ? `🎟️ Voucher: *${voucherApplied.code}* (-${fmtIDR(discountAmount)})\n` : "") +
       `💰 *TOTAL: ${fmtIDR(finalPrice)}*\n` +
       `📱 WA: ${phone}\n` +
@@ -241,6 +248,7 @@ export default function GameDetailPage() {
           customData: formData,
           notes: notes || undefined,
           voucherCode: voucherApplied?.code || undefined,
+          qty: effectiveQty,
         }),
       });
 
@@ -654,6 +662,74 @@ export default function GameDetailPage() {
               );
             })()}
 
+            {/* Qty selector — manual products only */}
+            {selected && isManualProduct && (
+              <div
+                style={{
+                  padding: 22,
+                  background: "#ffffff",
+                  border: "1px solid #e2e8ff",
+                  borderRadius: 16,
+                  color: "#0f172a",
+                  boxShadow: "0 10px 30px rgba(15,23,42,.18)",
+                  marginBottom: 20,
+                }}
+              >
+                <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Package size={14} /> Jumlah Pesanan
+                </h3>
+                <div style={{ fontSize: ".75rem", color: "#64748b", marginBottom: 12, fontWeight: 600 }}>
+                  Order lebih dari 1 kali? Cukup atur qty — admin proses sekaligus.
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    disabled={qty <= 1}
+                    style={{
+                      width: 44, height: 44, borderRadius: 10,
+                      border: "1px solid #e2e8ff",
+                      background: qty <= 1 ? "#f1f5f9" : "#fff",
+                      color: qty <= 1 ? "#cbd5e1" : "#0f172a",
+                      cursor: qty <= 1 ? "not-allowed" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <div
+                    style={{
+                      minWidth: 60, textAlign: "center",
+                      fontSize: "1.3rem", fontWeight: 800, color: "#0f172a",
+                      fontFamily: "'Fredoka'",
+                    }}
+                  >
+                    {qty}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.min(100, q + 1))}
+                    disabled={qty >= 100}
+                    style={{
+                      width: 44, height: 44, borderRadius: 10,
+                      border: "1px solid #e2e8ff",
+                      background: qty >= 100 ? "#f1f5f9" : "#fff",
+                      color: qty >= 100 ? "#cbd5e1" : "#0f172a",
+                      cursor: qty >= 100 ? "not-allowed" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <Plus size={18} />
+                  </button>
+                  <div style={{ marginLeft: "auto", fontSize: ".9rem", fontWeight: 700, color: "#64748b" }}>
+                    {qty} × {fmtIDR(selected.price_idr)} = <span style={{ color: "#ea580c", fontWeight: 800 }}>{fmtIDR(subtotal)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Contact / Phone */}
             <div
               style={{
@@ -855,7 +931,12 @@ export default function GameDetailPage() {
               {[
                 ["Game", game.name.split(":")[0]],
                 ["Paket", selected?.name || "—"],
-                ["Harga", selected ? fmtIDR(selected.price_idr) : "Rp 0"],
+                ...(isManualProduct
+                  ? ([
+                      ["Qty", `${qty}×`],
+                      ["Subtotal", fmtIDR(subtotal)],
+                    ] as [string, string][])
+                  : ([["Harga", selected ? fmtIDR(selected.price_idr) : "Rp 0"]] as [string, string][])),
                 ...(voucherApplied
                   ? ([[`Voucher (${voucherApplied.code})`, `-${fmtIDR(discountAmount)}`]] as [string, string][])
                   : ([] as [string, string][])),

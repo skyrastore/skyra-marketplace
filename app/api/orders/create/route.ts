@@ -17,6 +17,7 @@ type CreateOrderBody = {
   customData?: Record<string, unknown>;
   notes?: string;
   voucherCode?: string;
+  qty?: number;
 };
 
 export async function POST(req: Request) {
@@ -93,7 +94,28 @@ export async function POST(req: Request) {
       }
     }
 
-    const subtotal = product.price_idr;
+    // Qty: only manual products allow qty > 1 (UniPlay is per-denom)
+    const qty = product.supplier === "manual"
+      ? Math.max(1, Math.min(100, Math.floor(Number(body.qty) || 1)))
+      : 1;
+    const subtotal = product.price_idr * qty;
+
+    // Recompute voucher based on actual subtotal (qty × price) since frontend qty is untrusted
+    if (body.voucherCode && voucherCode) {
+      const { data: v } = await supabaseAdmin
+        .from("vouchers")
+        .select("discount_type,discount_value,max_discount_idr")
+        .eq("code", voucherCode)
+        .single();
+      if (v) {
+        if (v.discount_type === "percentage") {
+          voucherDiscount = Math.floor((subtotal * v.discount_value) / 100);
+          if (v.max_discount_idr && voucherDiscount > v.max_discount_idr) voucherDiscount = v.max_discount_idr;
+        } else {
+          voucherDiscount = v.discount_value;
+        }
+      }
+    }
     const total = Math.max(0, subtotal - voucherDiscount);
 
     // ─── Generate order_code ───
@@ -106,10 +128,11 @@ export async function POST(req: Request) {
     // ─── Create Midtrans Snap token ───
     let snapToken: string | null = null;
     try {
+      const qtySuffix = qty > 1 ? ` ×${qty}` : "";
       const snap = await createSnapTransaction({
         orderCode,
         grossAmount: total,
-        itemName: `${game.name} — ${product.name}`,
+        itemName: `${game.name} — ${product.name}${qtySuffix}`,
         itemId: product.id,
         customerPhone: cleanPhone,
       });
@@ -140,6 +163,7 @@ export async function POST(req: Request) {
       voucher_discount_idr: voucherDiscount,
       subtotal_idr: subtotal,
       total_idr: total,
+      qty,
       payment_method: "midtrans",
       midtrans_snap_token: snapToken,
       status: "pending_payment",
