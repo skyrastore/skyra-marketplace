@@ -22,6 +22,8 @@ export type Game = {
   instructions: string | null;
   is_active: boolean;
   is_featured: boolean;
+  is_special_offer: boolean;
+  external_url: string | null;
   sort_order: number;
 };
 

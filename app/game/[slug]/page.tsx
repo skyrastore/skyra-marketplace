@@ -29,6 +29,11 @@ export default function GameDetailPage() {
         .eq("is_active", true)
         .single();
       if (g) {
+        // If game has external_url, redirect there instead of rendering page
+        if ((g as Game).external_url) {
+          window.location.href = (g as Game).external_url!;
+          return;
+        }
         const { data: p } = await supabase
           .from("products")
           .select("*")
@@ -41,7 +46,7 @@ export default function GameDetailPage() {
       setLoading(false);
     }
     load();
-  }, [params.slug]);
+  }, [params.slug, router]);
 
   if (loading) {
     return <div style={{ textAlign: "center", padding: 80, color: "#fff" }}>⏳ Loading...</div>;

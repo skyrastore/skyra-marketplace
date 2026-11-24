@@ -8,10 +8,79 @@ const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNx
 const CATEGORIES = [
   { key: "all", label: "Semua", icon: "🎮" },
   { key: "mobile", label: "Mobile Games", icon: "📱" },
-  { key: "pc", label: "PC Games", icon: "💻" },
   { key: "voucher", label: "Voucher", icon: "🎫" },
   { key: "ppob", label: "PPOB", icon: "⚡" },
+  { key: "joki", label: "Joki", icon: "⚔️" },
 ];
+
+// Helper: card component (handles external_url redirect)
+function GameCard({ g }: { g: Game }) {
+  const content = (
+    <>
+      <div
+        className={g.image_url ? "gg-ic" : "gg-ic gg-ic-fallback"}
+        style={g.image_url ? { backgroundImage: `url(${g.image_url})` } : {}}
+      >
+        {!g.image_url && <span>{g.icon_emoji}</span>}
+        {g.is_featured && <span className="gg-badge hot">HOT</span>}
+      </div>
+      <div className="gg-info">
+        <div className="gg-name">{g.name}</div>
+        <div className="gg-pub">{g.publisher || "—"}</div>
+      </div>
+    </>
+  );
+  if (g.external_url) {
+    return (
+      <a href={g.external_url} target="_blank" rel="noopener noreferrer" className="gg-card">
+        {content}
+      </a>
+    );
+  }
+  return (
+    <Link href={`/game/${g.slug}`} className="gg-card">
+      {content}
+    </Link>
+  );
+}
+
+// Helper: portrait special/joki card
+function SpecialCard({ g, badge }: { g: Game; badge?: "SPECIAL" | "JOKI" }) {
+  const content = (
+    <>
+      {g.external_url && <span className="sp-ext-badge">↗ EXTERNAL</span>}
+      {badge === "SPECIAL" && <span className="sp-hot-badge">⚡ FLASHSALE</span>}
+      {badge === "JOKI" && <span className="sp-hot-badge" style={{ background: "linear-gradient(135deg,#a855f7,#ec4899)" }}>🎯 JOKI</span>}
+      <img
+        src={g.image_url || "https://via.placeholder.com/300x400/1a52b8/ffffff?text=" + encodeURIComponent(g.name)}
+        alt={g.name}
+        className="sp-img"
+        loading="lazy"
+      />
+      <div className="sp-info">
+        <div>
+          <div className="sp-name">{g.name}</div>
+          {g.instructions && <div className="sp-desc">{g.instructions}</div>}
+        </div>
+        <div className="sp-btn">
+          {g.external_url ? "ORDER SEKARANG ↗" : "TOP UP SEKARANG →"}
+        </div>
+      </div>
+    </>
+  );
+  if (g.external_url) {
+    return (
+      <a href={g.external_url} target="_blank" rel="noopener noreferrer" className="sp-card">
+        {content}
+      </a>
+    );
+  }
+  return (
+    <Link href={`/game/${g.slug}`} className="sp-card">
+      {content}
+    </Link>
+  );
+}
 
 export default function Home() {
   const [splashHide, setSplashHide] = useState(false);
@@ -278,50 +347,143 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ═══════════ GAME GRID (from Supabase LIVE) ═══════════ */}
-      <div className="section">
-        <div className="sec-head">
-          <h2>
-            <span className="ic">{search ? "🔍" : "🎮"}</span>
-            {search
-              ? `Hasil pencarian: "${search}"`
-              : cat === "all"
-              ? "Semua Game"
-              : CATEGORIES.find((c) => c.key === cat)?.label}
-          </h2>
-          <div className="meta">{loading ? "Loading..." : `${filteredGames.length} game`}</div>
+      {loading ? (
+        <div className="section" style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,.7)" }}>
+          ⏳ Loading catalog...
         </div>
+      ) : search ? (
+        /* ─── SEARCH MODE: flat grid of filtered results ─── */
+        <div className="section">
+          <div className="sec-head">
+            <h2>
+              <span className="ic">🔍</span> Hasil pencarian: &quot;{search}&quot;
+            </h2>
+            <div className="meta">{filteredGames.length} game</div>
+          </div>
+          {filteredGames.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,.7)" }}>
+              📭 Ga ada game yang cocok dengan &quot;{search}&quot;. Coba kata lain ya.
+            </div>
+          ) : (
+            <div className="games-grid">
+              {filteredGames.map((g) => (
+                <GameCard key={g.id} g={g} />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* ═══════════ SPECIAL OFFER (always show when 'all' or 'mobile') ═══════════ */}
+          {(cat === "all" || cat === "mobile") &&
+            games.filter((g) => g.is_special_offer).length > 0 && (
+              <div className="section">
+                <div className="sec-head">
+                  <h2>
+                    <span className="ic">⭐</span> Special Offer
+                  </h2>
+                  <div className="meta">🔥 Handle by Skyra</div>
+                </div>
+                <div className="special-grid">
+                  {games
+                    .filter((g) => g.is_special_offer)
+                    .map((g) => (
+                      <SpecialCard key={g.id} g={g} badge="SPECIAL" />
+                    ))}
+                </div>
+              </div>
+            )}
 
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,.7)" }}>
-            ⏳ Loading catalog...
-          </div>
-        ) : filteredGames.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,.7)" }}>
-            {search
-              ? `📭 Ga ada game yang cocok dengan "${search}". Coba kata lain ya.`
-              : "📭 Belum ada game di kategori ini."}
-          </div>
-        ) : (
-          <div className="games-grid">
-            {filteredGames.map((g) => (
-              <Link href={`/game/${g.slug}`} key={g.id} className="gg-card">
-                <div
-                  className={g.image_url ? "gg-ic" : "gg-ic gg-ic-fallback"}
-                  style={g.image_url ? { backgroundImage: `url(${g.image_url})` } : {}}
-                >
-                  {!g.image_url && <span>{g.icon_emoji}</span>}
-                  {g.is_featured && <span className="gg-badge hot">HOT</span>}
+          {/* ═══════════ JOKI SECTION (show when 'all' or 'joki') ═══════════ */}
+          {(cat === "all" || cat === "joki") &&
+            games.filter((g) => g.category === "joki").length > 0 && (
+              <div className="section">
+                <div className="sec-head">
+                  <h2>
+                    <span className="ic">🎯</span> Joki Skyra
+                  </h2>
+                  <div className="meta">⚔️ Jasa Pribadi</div>
                 </div>
-                <div className="gg-info">
-                  <div className="gg-name">{g.name}</div>
-                  <div className="gg-pub">{g.publisher || "—"}</div>
+                <div className="special-grid">
+                  {games
+                    .filter((g) => g.category === "joki")
+                    .map((g) => (
+                      <SpecialCard key={g.id} g={g} badge="JOKI" />
+                    ))}
                 </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+              </div>
+            )}
+
+          {/* ═══════════ ALL GAMES (split by Mobile vs Voucher when 'all') ═══════════ */}
+          {cat === "all" ? (
+            <>
+              {/* Mobile section */}
+              <div className="section">
+                <div className="sec-head">
+                  <h2>
+                    <span className="ic">📱</span> Semua Mobile Game
+                  </h2>
+                  <div className="meta">
+                    {games.filter((g) => g.category === "mobile" && !g.is_special_offer).length} game
+                  </div>
+                </div>
+                <div className="games-grid">
+                  {games
+                    .filter((g) => g.category === "mobile" && !g.is_special_offer)
+                    .map((g) => (
+                      <GameCard key={g.id} g={g} />
+                    ))}
+                </div>
+              </div>
+
+              {/* Voucher section */}
+              {games.filter((g) => g.category === "voucher").length > 0 && (
+                <div className="section">
+                  <div className="sec-head">
+                    <h2>
+                      <span className="ic">🎫</span> Voucher &amp; PC Games
+                    </h2>
+                    <div className="meta">
+                      {games.filter((g) => g.category === "voucher").length} voucher
+                    </div>
+                  </div>
+                  <div className="games-grid">
+                    {games
+                      .filter((g) => g.category === "voucher")
+                      .map((g) => (
+                        <GameCard key={g.id} g={g} />
+                      ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : cat !== "joki" ? (
+            /* Specific category (mobile / voucher / ppob) - flat grid */
+            <div className="section">
+              <div className="sec-head">
+                <h2>
+                  <span className="ic">
+                    {CATEGORIES.find((c) => c.key === cat)?.icon}
+                  </span>{" "}
+                  {CATEGORIES.find((c) => c.key === cat)?.label}
+                </h2>
+                <div className="meta">{filteredGames.length} game</div>
+              </div>
+              {filteredGames.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,.7)" }}>
+                  📭 Belum ada game di kategori ini.
+                </div>
+              ) : (
+                <div className="games-grid">
+                  {filteredGames.map((g) => (
+                    <GameCard key={g.id} g={g} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </>
+      )}
 
       {/* ═══════════ FEATURES ═══════════ */}
       <div className="feats">
