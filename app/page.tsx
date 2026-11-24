@@ -547,35 +547,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* ═══════════ TRUST BADGES ═══════════ */}
-      <div
-        style={{
-          margin: "40px auto 20px",
-          maxWidth: 1180,
-          padding: "20px 24px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 20,
-          flexWrap: "wrap",
-          fontSize: ".85rem",
-          color: "rgba(255,255,255,.9)",
-          fontWeight: 700,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ color: "#fbbf24", fontSize: "1.1rem", letterSpacing: "1px" }}>★★★★★</span>
-          <span style={{ fontWeight: 800 }}>5.0</span>
-          <span style={{ opacity: .7 }}>· Dipercaya 1000+ customer</span>
-        </div>
-        <div style={{ opacity: .4 }}>|</div>
-        <div>⚡ Instant Delivery</div>
-        <div style={{ opacity: .4 }}>|</div>
-        <div>🔒 100% Legal</div>
-        <div style={{ opacity: .4 }}>|</div>
-        <div>💎 Refund Garansi</div>
-      </div>
-
       {/* ═══════════ FOOTER ═══════════ */}
       <footer>
         <div className="cols">
@@ -637,11 +608,6 @@ export default function Home() {
                 </svg>
               </a>
             </div>
-            <p style={{ color: "rgba(255,255,255,.65)", fontSize: ".75rem", fontWeight: 600, marginTop: 10 }}>
-              <a href="https://instagram.com/skyra_store2" target="_blank" rel="noopener noreferrer" style={{ color: "#7bc3ff", textDecoration: "none" }}>@skyra_store2</a>
-              {" · "}
-              <a href="https://wa.me/6285183346300" target="_blank" rel="noopener noreferrer" style={{ color: "#7bc3ff", textDecoration: "none" }}>0851-8334-6300</a>
-            </p>
           </div>
           <div className="col">
             <h4>Layanan</h4>

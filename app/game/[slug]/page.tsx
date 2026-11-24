@@ -275,59 +275,7 @@ export default function GameDetailPage() {
       </nav>
 
       <div style={{ maxWidth: 1100, margin: "20px auto 60px", padding: "0 24px", position: "relative", zIndex: 1 }}>
-        {/* Game Hero */}
-        <div
-          style={{
-            display: "flex",
-            gap: 20,
-            alignItems: "center",
-            padding: 24,
-            background: "rgba(30,42,98,.82)",
-            border: "1.5px solid rgba(123,195,255,.3)",
-            borderRadius: 20,
-            marginBottom: 28,
-            color: "#fff",
-            boxShadow: "0 8px 30px rgba(0,0,0,.4)",
-          }}
-        >
-          <div
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: 18,
-              backgroundImage: game.image_url ? `url(${game.image_url})` : "linear-gradient(135deg,#1a52b8,#4a8dff)",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "2.5rem",
-              flexShrink: 0,
-              boxShadow: "0 8px 24px rgba(0,0,0,.3)",
-            }}
-          >
-            {!game.image_url && game.icon_emoji}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: ".7rem", fontWeight: 900, letterSpacing: ".3em", opacity: 0.75, marginBottom: 6 }}>
-              {game.category.toUpperCase()}
-            </div>
-            <h1
-              style={{
-                fontFamily: "'Fredoka'",
-                fontSize: "clamp(1.5rem,3vw,2.2rem)",
-                fontWeight: 700,
-                lineHeight: 1.1,
-                marginBottom: 4,
-              }}
-            >
-              {game.name}
-            </h1>
-            <div style={{ fontSize: ".85rem", opacity: 0.85, fontWeight: 600 }}>{game.publisher || "—"}</div>
-          </div>
-        </div>
-
-        {/* Process time badge */}
+        {/* Game Hero + badges inline */}
         {(() => {
           const hasUniplayProduct = products.some((p) => p.supplier === "uniplay");
           const isInstant = hasUniplayProduct;
@@ -335,46 +283,97 @@ export default function GameDetailPage() {
             <div
               style={{
                 display: "flex",
-                gap: 10,
-                flexWrap: "wrap",
-                marginBottom: 24,
+                gap: 20,
+                alignItems: "center",
+                padding: 24,
+                background: "rgba(30,42,98,.82)",
+                border: "1.5px solid rgba(123,195,255,.3)",
+                borderRadius: 20,
+                marginBottom: 28,
+                color: "#fff",
+                boxShadow: "0 8px 30px rgba(0,0,0,.4)",
               }}
             >
               <div
                 style={{
-                  padding: "10px 16px",
-                  background: isInstant
-                    ? "linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.1))"
-                    : "linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1))",
-                  border: isInstant
-                    ? "1.5px solid rgba(16,185,129,.5)"
-                    : "1.5px solid rgba(245,158,11,.5)",
-                  borderRadius: 10,
-                  color: isInstant ? "#6ee7b7" : "#fbbf24",
-                  fontSize: ".78rem",
-                  fontWeight: 800,
+                  width: 100,
+                  height: 100,
+                  borderRadius: 18,
+                  backgroundImage: game.image_url ? `url(${game.image_url})` : "linear-gradient(135deg,#1a52b8,#4a8dff)",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
+                  justifyContent: "center",
+                  fontSize: "2.5rem",
+                  flexShrink: 0,
+                  boxShadow: "0 8px 24px rgba(0,0,0,.3)",
                 }}
               >
-                {isInstant ? "⚡ Instant Process" : "⏱ Estimasi 0-120 menit"}
+                {!game.image_url && game.icon_emoji}
               </div>
-              <div
-                style={{
-                  padding: "10px 16px",
-                  background: "linear-gradient(135deg,rgba(123,195,255,.18),rgba(123,195,255,.08))",
-                  border: "1.5px solid rgba(123,195,255,.45)",
-                  borderRadius: 10,
-                  color: "#7bc3ff",
-                  fontSize: ".78rem",
-                  fontWeight: 800,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                🔒 100% Legal & Aman
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Badges row ABOVE title */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                  <span
+                    style={{
+                      padding: "4px 10px",
+                      background: "linear-gradient(135deg,rgba(245,158,11,.22),rgba(245,158,11,.12))",
+                      border: "1px solid rgba(245,158,11,.5)",
+                      borderRadius: 99,
+                      color: "#fbbf24",
+                      fontSize: ".68rem",
+                      fontWeight: 800,
+                      letterSpacing: ".02em",
+                    }}
+                  >
+                    ✓ Distributor Resmi
+                  </span>
+                  <span
+                    style={{
+                      padding: "4px 10px",
+                      background: isInstant
+                        ? "linear-gradient(135deg,rgba(16,185,129,.22),rgba(16,185,129,.12))"
+                        : "linear-gradient(135deg,rgba(168,85,247,.22),rgba(168,85,247,.12))",
+                      border: isInstant
+                        ? "1px solid rgba(16,185,129,.5)"
+                        : "1px solid rgba(168,85,247,.5)",
+                      borderRadius: 99,
+                      color: isInstant ? "#6ee7b7" : "#c4b5fd",
+                      fontSize: ".68rem",
+                      fontWeight: 800,
+                      letterSpacing: ".02em",
+                    }}
+                  >
+                    {isInstant ? "⚡ Isi Ulang Instan" : "⏱ Proses 0-120 menit"}
+                  </span>
+                  <span
+                    style={{
+                      padding: "4px 10px",
+                      background: "linear-gradient(135deg,rgba(123,195,255,.22),rgba(123,195,255,.12))",
+                      border: "1px solid rgba(123,195,255,.5)",
+                      borderRadius: 99,
+                      color: "#7bc3ff",
+                      fontSize: ".68rem",
+                      fontWeight: 800,
+                      letterSpacing: ".02em",
+                    }}
+                  >
+                    🔒 Pembayaran Aman
+                  </span>
+                </div>
+                <h1
+                  style={{
+                    fontFamily: "'Fredoka'",
+                    fontSize: "clamp(1.4rem,2.6vw,2rem)",
+                    fontWeight: 700,
+                    lineHeight: 1.1,
+                    marginBottom: 4,
+                  }}
+                >
+                  {game.name}
+                </h1>
+                <div style={{ fontSize: ".82rem", opacity: 0.8, fontWeight: 600 }}>{game.publisher || "—"}</div>
               </div>
             </div>
           );
