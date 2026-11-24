@@ -57,18 +57,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Produk tidak tersedia" }, { status: 404 });
     }
 
-    // ─── Fetch entitas_id (UniPlay) ───
-    // For UniPlay, entitas_id ada di games table (extend later) atau dari sync metadata
-    // Untuk sekarang: kalau supplier=uniplay, entitas_id = game.slug prefix
-    let entitasId: string | null = null;
-    if (product.supplier === "uniplay") {
-      // Format: skus di UniPlay dinamakan "entitas_id:denom_id" — kita extract
-      // Atau simpan di products.notes sbg metadata JSON
-      // Fallback: derive dari supplier_sku kalau pattern "entitas:denom"
-      if (product.supplier_sku?.includes(":")) {
-        entitasId = product.supplier_sku.split(":")[0];
-      }
-    }
+    // Note: entitas_id ga perlu dipopulate di sini — UniPlay rotates per call,
+    // fulfill.js akan resolve fresh entitas_id + denom_id dari API pake
+    // stable name-based supplier_sku (slug--slug).
 
     // ─── Validate voucher (if provided) ───
     let voucherDiscount = 0;
@@ -142,7 +133,6 @@ export async function POST(req: Request) {
       product_price_idr: product.price_idr,
       supplier: product.supplier,
       supplier_sku: product.supplier_sku,
-      entitas_id: entitasId,
       phone: cleanPhone,
       custom_data: body.customData || {},
       notes: body.notes || null,
