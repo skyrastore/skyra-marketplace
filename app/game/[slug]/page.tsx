@@ -146,13 +146,13 @@ export default function GameDetailPage() {
   }, [params.slug, router]);
 
   if (loading) {
-    return <div style={{ textAlign: "center", padding: 80, color: "#fff" }}>⏳ Loading...</div>;
+    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a" }}>⏳ Loading...</div>;
   }
   if (!game) {
     return (
-      <div style={{ textAlign: "center", padding: 80, color: "#fff" }}>
+      <div style={{ textAlign: "center", padding: 80, color: "#0f172a" }}>
         <h2 style={{ fontFamily: "'Fredoka'", marginBottom: 16 }}>Game tidak ditemukan</h2>
-        <Link href="/" style={{ color: "#7bc3ff" }}>← Kembali ke beranda</Link>
+        <Link href="/" style={{ color: "#2272dc" }}>← Kembali ke beranda</Link>
       </div>
     );
   }
@@ -286,11 +286,11 @@ export default function GameDetailPage() {
                 gap: 20,
                 alignItems: "center",
                 padding: 24,
-                background: "rgba(30,42,98,.82)",
-                border: "1.5px solid rgba(123,195,255,.3)",
+                background: "#ffffff",
+                border: "1px solid #e2e8ff",
                 borderRadius: 20,
                 marginBottom: 28,
-                color: "#fff",
+                color: "#0f172a",
                 boxShadow: "0 8px 30px rgba(0,0,0,.4)",
               }}
             >
@@ -353,7 +353,7 @@ export default function GameDetailPage() {
                       background: "linear-gradient(135deg,rgba(123,195,255,.22),rgba(123,195,255,.12))",
                       border: "1px solid rgba(123,195,255,.5)",
                       borderRadius: 99,
-                      color: "#7bc3ff",
+                      color: "#2272dc",
                       fontSize: ".68rem",
                       fontWeight: 800,
                       letterSpacing: ".02em",
@@ -387,7 +387,7 @@ export default function GameDetailPage() {
               background: "rgba(245,158,11,.14)",
               border: "1.5px solid rgba(245,158,11,.4)",
               borderRadius: 12,
-              color: "#fff",
+              color: "#0f172a",
               fontSize: ".82rem",
               fontWeight: 600,
               marginBottom: 24,
@@ -405,11 +405,11 @@ export default function GameDetailPage() {
               <div
                 style={{
                   padding: 22,
-                  background: "rgba(30,42,98,.82)",
-                  border: "1.5px solid rgba(123,195,255,.3)",
+                  background: "#ffffff",
+                  border: "1px solid #e2e8ff",
                   borderRadius: 16,
                   marginBottom: 20,
-                  color: "#fff",
+                  color: "#0f172a",
                   boxShadow: "0 6px 24px rgba(0,0,0,.35)",
                 }}
               >
@@ -420,7 +420,7 @@ export default function GameDetailPage() {
                   {inputFields.map((f) => (
                     <div key={f.key}>
                       <label
-                        style={{ display: "block", fontSize: ".78rem", fontWeight: 700, marginBottom: 6, color: "rgba(255,255,255,.9)" }}
+                        style={{ display: "block", fontSize: ".78rem", fontWeight: 700, marginBottom: 6, color: "#334155" }}
                       >
                         {f.label} {f.required && <span style={{ color: "#fca5a5" }}>*</span>}
                       </label>
@@ -433,9 +433,9 @@ export default function GameDetailPage() {
                           width: "100%",
                           padding: "12px 14px",
                           borderRadius: 10,
-                          background: "rgba(22,32,82,.8)",
-                          border: "1.5px solid rgba(123,195,255,.3)",
-                          color: "#fff",
+                          background: "#f8fafc",
+                          border: "1px solid #e2e8ff",
+                          color: "#0f172a",
                           fontFamily: "inherit",
                           fontSize: ".88rem",
                           fontWeight: 600,
@@ -452,11 +452,11 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                background: "rgba(30,42,98,.82)",
-                border: "1.5px solid rgba(123,195,255,.3)",
+                background: "#ffffff",
+                border: "1px solid #e2e8ff",
                 borderRadius: 16,
                 marginBottom: 20,
-                color: "#fff",
+                color: "#0f172a",
                 boxShadow: "0 6px 24px rgba(0,0,0,.35)",
               }}
             >
@@ -483,8 +483,8 @@ export default function GameDetailPage() {
                         padding: 14,
                         borderRadius: 12,
                         border: selected?.id === p.id ? "2px solid #7bc3ff" : "1.5px solid rgba(123,195,255,.25)",
-                        background: selected?.id === p.id ? "rgba(34,114,220,.55)" : "rgba(22,32,82,.78)",
-                        color: "#fff",
+                        background: selected?.id === p.id ? "#dbeafe" : "#f8fafc",
+                        color: "#0f172a",
                         cursor: "pointer",
                         fontFamily: "inherit",
                         textAlign: "center",
@@ -513,7 +513,7 @@ export default function GameDetailPage() {
                       <div style={{ fontFamily: "'Fredoka'", fontSize: "1rem", fontWeight: 700, marginBottom: 4 }}>
                         {p.name}
                       </div>
-                      <div style={{ fontSize: ".92rem", fontWeight: 800, color: "#7bc3ff" }}>{fmtIDR(p.price_idr)}</div>
+                      <div style={{ fontSize: ".92rem", fontWeight: 800, color: "#2272dc" }}>{fmtIDR(p.price_idr)}</div>
                     </button>
                   ))}
                 </div>
@@ -525,10 +525,10 @@ export default function GameDetailPage() {
               style={{
                 padding: 22,
                 marginTop: 0,
-                background: "rgba(30,42,98,.82)",
+                background: "#ffffff",
                 border: "1.5px solid rgba(236,72,153,.35)",
                 borderRadius: 16,
-                color: "#fff",
+                color: "#0f172a",
                 boxShadow: "0 6px 24px rgba(0,0,0,.35)",
                 marginBottom: 20,
               }}
@@ -536,7 +536,7 @@ export default function GameDetailPage() {
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
                 {inputFields.length > 0 ? "3." : "2."} 📱 Nomor WhatsApp
               </h3>
-              <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.75)", marginBottom: 12, fontWeight: 600 }}>
+              <div style={{ fontSize: ".78rem", color: "#64748b", marginBottom: 12, fontWeight: 600 }}>
                 Wajib. Buat notifikasi + kontak admin kalau ada pending.
               </div>
               <input
@@ -548,9 +548,9 @@ export default function GameDetailPage() {
                   width: "100%",
                   padding: "12px 14px",
                   borderRadius: 10,
-                  background: "rgba(22,32,82,.8)",
+                  background: "#f8fafc",
                   border: "1.5px solid rgba(236,72,153,.4)",
-                  color: "#fff",
+                  color: "#0f172a",
                   fontFamily: "inherit",
                   fontSize: ".95rem",
                   fontWeight: 700,
@@ -564,10 +564,10 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                background: "rgba(30,42,98,.82)",
+                background: "#ffffff",
                 border: "1.5px solid rgba(168,85,247,.35)",
                 borderRadius: 16,
-                color: "#fff",
+                color: "#0f172a",
                 boxShadow: "0 6px 24px rgba(0,0,0,.35)",
                 marginBottom: 20,
               }}
@@ -589,9 +589,9 @@ export default function GameDetailPage() {
                     flex: 1,
                     padding: "12px 14px",
                     borderRadius: 10,
-                    background: "rgba(22,32,82,.8)",
+                    background: "#f8fafc",
                     border: "1.5px solid rgba(168,85,247,.35)",
-                    color: "#fff",
+                    color: "#0f172a",
                     fontFamily: "inherit",
                     fontSize: ".9rem",
                     fontWeight: 700,
@@ -627,8 +627,8 @@ export default function GameDetailPage() {
                       border: 0,
                       background: voucherCode.trim()
                         ? "linear-gradient(135deg,#a855f7,#ec4899)"
-                        : "rgba(255,255,255,.15)",
-                      color: "#fff",
+                        : "#e2e8ff",
+                      color: voucherCode.trim() ? "#fff" : "#64748b",
                       fontFamily: "inherit",
                       fontWeight: 800,
                       fontSize: ".9rem",
@@ -662,17 +662,17 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                background: "rgba(30,42,98,.82)",
-                border: "1.5px solid rgba(123,195,255,.3)",
+                background: "#ffffff",
+                border: "1px solid #e2e8ff",
                 borderRadius: 16,
-                color: "#fff",
+                color: "#0f172a",
                 boxShadow: "0 6px 24px rgba(0,0,0,.35)",
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
                 📝 Catatan Order <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
               </h3>
-              <div style={{ fontSize: ".75rem", color: "rgba(255,255,255,.7)", marginBottom: 10, fontWeight: 600 }}>
+              <div style={{ fontSize: ".75rem", color: "#64748b", marginBottom: 10, fontWeight: 600 }}>
                 Contoh: proses malam ya, hati2 jangan ganti password, dsb.
               </div>
               <textarea
@@ -685,9 +685,9 @@ export default function GameDetailPage() {
                   width: "100%",
                   padding: "10px 14px",
                   borderRadius: 10,
-                  background: "rgba(22,32,82,.8)",
-                  border: "1.5px solid rgba(123,195,255,.3)",
-                  color: "#fff",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8ff",
+                  color: "#0f172a",
                   fontFamily: "inherit",
                   fontSize: ".88rem",
                   fontWeight: 600,
@@ -696,7 +696,7 @@ export default function GameDetailPage() {
                   minHeight: 70,
                 }}
               />
-              <div style={{ fontSize: ".68rem", color: "rgba(255,255,255,.5)", marginTop: 4, textAlign: "right" }}>
+              <div style={{ fontSize: ".68rem", color: "#94a3b8", marginTop: 4, textAlign: "right" }}>
                 {notes.length}/300
               </div>
             </div>
@@ -707,10 +707,10 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                background: "rgba(22,32,82,.88)",
-                border: "1.5px solid rgba(123,195,255,.35)",
+                background: "#ffffff",
+                border: "1px solid #c7d4f0",
                 borderRadius: 16,
-                color: "#fff",
+                color: "#0f172a",
                 boxShadow: "0 8px 30px rgba(0,0,0,.45)",
                 animation: "fadeInUp .35s ease",
               }}
@@ -727,14 +727,14 @@ export default function GameDetailPage() {
                   : ([] as [string, string][])),
                 ["Admin fee", "Rp 0"],
               ].map(([k, v]) => (
-                <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "rgba(255,255,255,.85)" }}>
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "#334155" }}>
                   <span>{k}</span>
                   <span style={{ color: voucherApplied && k.startsWith("Voucher") ? "#10b981" : "#fff", fontWeight: 800 }}>{v}</span>
                 </div>
               ))}
               <div
                 style={{
-                  borderTop: "1.5px solid rgba(255,255,255,.2)",
+                  borderTop: "1px solid #e2e8ff",
                   marginTop: 8,
                   paddingTop: 14,
                   display: "flex",
@@ -744,7 +744,7 @@ export default function GameDetailPage() {
                 }}
               >
                 <span>TOTAL</span>
-                <span style={{ color: "#7bc3ff", fontSize: "1.3rem" }}>{fmtIDR(finalPrice)}</span>
+                <span style={{ color: "#2272dc", fontSize: "1.3rem" }}>{fmtIDR(finalPrice)}</span>
               </div>
 
               {/* Primary: Midtrans Snap */}
@@ -758,9 +758,9 @@ export default function GameDetailPage() {
                   border: 0,
                   borderRadius: 12,
                   background: paying
-                    ? "rgba(255,255,255,.15)"
+                    ? "#e2e8ff"
                     : "linear-gradient(135deg,#1452b4,#2272dc,#4a8dff)",
-                  color: "#fff",
+                  color: paying ? "#64748b" : "#fff",
                   fontFamily: "'Fredoka'",
                   fontSize: ".98rem",
                   fontWeight: 600,
@@ -800,9 +800,9 @@ export default function GameDetailPage() {
                   padding: "10px 12px",
                   borderRadius: 8,
                   background: "rgba(123,195,255,.12)",
-                  border: "1.5px solid rgba(123,195,255,.3)",
+                  border: "1px solid #e2e8ff",
                   fontSize: ".72rem",
-                  color: "rgba(255,255,255,.8)",
+                  color: "#334155",
                   fontWeight: 600,
                   lineHeight: 1.45,
                 }}

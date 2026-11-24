@@ -118,17 +118,17 @@ export default function OrderStatusPage() {
   }, [params.code]);
 
   if (loading) {
-    return <div style={{ textAlign: "center", padding: 80, color: "#fff" }}>⏳ Loading...</div>;
+    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a" }}>⏳ Loading...</div>;
   }
 
   if (notFound) {
     return (
-      <div style={{ textAlign: "center", padding: 80, color: "#fff" }}>
+      <div style={{ textAlign: "center", padding: 80, color: "#0f172a" }}>
         <h2 style={{ fontFamily: "'Fredoka'", marginBottom: 16 }}>Order tidak ditemukan</h2>
         <div style={{ fontSize: ".9rem", opacity: .75, marginBottom: 20 }}>
           Kode order <code>{params.code}</code> tidak terdaftar atau sudah dihapus.
         </div>
-        <Link href="/" style={{ color: "#7bc3ff", fontWeight: 700 }}>← Kembali ke beranda</Link>
+        <Link href="/" style={{ color: "#2272dc", fontWeight: 700 }}>← Kembali ke beranda</Link>
       </div>
     );
   }
@@ -155,11 +155,11 @@ export default function OrderStatusPage() {
           style={{
             padding: 32,
             textAlign: "center",
-            background: "rgba(30,42,98,.82)",
+            background: "#ffffff",
             border: `2px solid ${status.color}50`,
             borderRadius: 20,
             marginBottom: 20,
-            color: "#fff",
+            color: "#0f172a",
             boxShadow: `0 10px 40px ${status.color}30`,
           }}
         >
@@ -190,10 +190,10 @@ export default function OrderStatusPage() {
         <div
           style={{
             padding: 22,
-            background: "rgba(30,42,98,.82)",
-            border: "1.5px solid rgba(123,195,255,.3)",
+            background: "#ffffff",
+            border: "1px solid #e2e8ff",
             borderRadius: 16,
-            color: "#fff",
+            color: "#0f172a",
             boxShadow: "0 6px 24px rgba(0,0,0,.35)",
             marginBottom: 20,
           }}
@@ -214,10 +214,10 @@ export default function OrderStatusPage() {
           ].map(([k, v]) => (
             <div
               key={k}
-              style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: ".85rem", fontWeight: 600, color: "rgba(255,255,255,.85)", borderBottom: "1px dashed rgba(255,255,255,.1)" }}
+              style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: ".85rem", fontWeight: 600, color: "#334155", borderBottom: "1px dashed #e2e8ff" }}
             >
               <span>{k}</span>
-              <span style={{ color: "#fff", fontWeight: 700, textAlign: "right" }}>{v}</span>
+              <span style={{ color: "#0f172a", fontWeight: 700, textAlign: "right" }}>{v}</span>
             </div>
           ))}
           <div
@@ -231,7 +231,7 @@ export default function OrderStatusPage() {
             }}
           >
             <span>TOTAL</span>
-            <span style={{ color: "#7bc3ff", fontSize: "1.2rem" }}>{fmtIDR(order!.total_idr)}</span>
+            <span style={{ color: "#2272dc", fontSize: "1.2rem" }}>{fmtIDR(order!.total_idr)}</span>
           </div>
         </div>
 
@@ -282,9 +282,9 @@ export default function OrderStatusPage() {
             style={{
               padding: 14,
               borderRadius: 12,
-              background: "rgba(22,32,82,.78)",
-              border: "1.5px solid rgba(123,195,255,.3)",
-              color: "#fff",
+              background: "#f8fafc",
+              border: "1px solid #e2e8ff",
+              color: "#0f172a",
               textAlign: "center",
               fontFamily: "'Fredoka'",
               fontWeight: 600,

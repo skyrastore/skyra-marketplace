@@ -535,7 +535,7 @@ export default function Home() {
           { ic: "⚡", t: "Instant Delivery", d: "Otomatis proses <5 menit" },
           { ic: "💰", t: "Harga Termurah", d: "Auto-check multi supplier" },
           { ic: "🛡️", t: "Refund 100%", d: "Gagal = balik modal" },
-          { ic: "⭐", t: "4.9/5 Rating", d: "1000+ customer puas" },
+          { ic: "⭐", t: "5.0/5 Rating", d: "1000+ customer puas" },
         ].map((f, i) => (
           <div key={i} className="feat">
             <div className="feat-ic">{f.ic}</div>
