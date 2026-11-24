@@ -13,14 +13,28 @@
 import { getRequestContext } from "@cloudflare/next-on-pages";
 
 export function env(key: string): string | undefined {
-  // Prefer runtime context (Cloudflare bindings) — covers server-side vars
+  // Try 1: getRequestContext (Cloudflare bindings)
   try {
     const ctx = getRequestContext();
-    const val = (ctx.env as Record<string, string | undefined>)[key];
+    const envObj = ctx?.env as Record<string, string | undefined> | undefined;
+    console.log("[env debug]", key, {
+      hasContext: !!ctx,
+      hasEnv: !!envObj,
+      envKeys: envObj ? Object.keys(envObj).sort() : [],
+    });
+    const val = envObj?.[key];
     if (val !== undefined && val !== "") return val;
-  } catch {
-    // Not inside request context (build time, SSG, etc.) — fallthrough
+  } catch (e) {
+    console.log("[env debug] getRequestContext threw:", key, (e as Error).message);
   }
-  // Fallback: process.env (always works for NEXT_PUBLIC_* due to webpack inline)
-  return process.env[key];
+
+  // Try 2: process.env
+  const procVal = process.env[key];
+  console.log("[env debug] process.env", key, { hasVal: !!procVal });
+  if (procVal !== undefined && procVal !== "") return procVal;
+
+  // Try 3: globalThis (last resort for exotic runtimes)
+  const globalVal = (globalThis as unknown as Record<string, string | undefined>)[key];
+  console.log("[env debug] globalThis", key, { hasVal: !!globalVal });
+  return globalVal;
 }
