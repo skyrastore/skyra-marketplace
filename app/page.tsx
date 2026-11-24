@@ -4,7 +4,7 @@ import Link from "next/link";
 import { supabase, fmtIDR, type Game, type Promo } from "@/lib/supabase";
 import {
   Gamepad2, Smartphone, Ticket, Zap, Swords, Sparkles, Star, Flame, Target,
-  Wallet, ShieldCheck, Clock, ArrowUpRight, Search as SearchIcon,
+  Wallet, ShieldCheck, Clock, ArrowUpRight, Search as SearchIcon, Menu, X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -78,7 +78,7 @@ function SpecialCard({ g, badge }: { g: Game; badge?: "SPECIAL" | "JOKI" }) {
                 : "linear-gradient(135deg,#64748b,#475569)",
           }}
         >
-          via {variant}
+          VIA {variant}
         </span>
       )}
       <img
@@ -123,6 +123,7 @@ export default function Home() {
   const [promos, setPromos] = useState<Promo[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Hide splash after animation + track returning visitor + restore lang
   useEffect(() => {
@@ -236,7 +237,7 @@ export default function Home() {
 
       <canvas id="stars" aria-hidden="true"></canvas>
 
-      {/* ═══════════ NAVBAR (unified — logo + nav items + ID/EN + MASUK on one row) ═══════════ */}
+      {/* ═══════════ NAVBAR (unified — logo + nav items + ID/EN + MASUK) ═══════════ */}
       <nav className="nav">
         <div className="nav-inner">
           <Link href="/" className="nav-logo">
@@ -246,7 +247,6 @@ export default function Home() {
           <div className="nav-menu-main">
             <Link href="/">Home</Link>
             <Link href="/lacak">Lacak Pesanan</Link>
-            <Link href="/saldo">Cek Saldo</Link>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
             <div className="lang-sw">
@@ -254,8 +254,24 @@ export default function Home() {
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
             </div>
             <Link href="/login" className="nav-cta">MASUK</Link>
+            <button
+              className="nav-burger"
+              aria-label="Open menu"
+              onClick={() => setMobileNavOpen((o) => !o)}
+            >
+              {mobileNavOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile drawer (appears below nav on small screens) */}
+        {mobileNavOpen && (
+          <div className="nav-drawer">
+            <Link href="/" onClick={() => setMobileNavOpen(false)}>Home</Link>
+            <Link href="/lacak" onClick={() => setMobileNavOpen(false)}>Lacak Pesanan</Link>
+            <Link href="/login" onClick={() => setMobileNavOpen(false)}>Masuk</Link>
+          </div>
+        )}
       </nav>
 
       {/* ═══════════ SEARCH BAR (full-width below nav) ═══════════ */}

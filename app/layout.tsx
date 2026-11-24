@@ -3,6 +3,7 @@ import "./globals.css";
 import "lenis/dist/lenis.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { Toaster } from "@/components/ui/sonner";
+import { CSButton } from "@/components/cs-button";
 
 export const metadata: Metadata = {
   title: "Skyra Store — Top Up Game Termurah & Terpercaya",
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body>
         <SmoothScroll />
         {children}
+        <CSButton />
         <Toaster />
       </body>
     </html>
