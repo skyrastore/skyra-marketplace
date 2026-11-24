@@ -327,7 +327,61 @@ export default function GameDetailPage() {
           </div>
         </div>
 
-        {game.instructions && (
+        {/* Process time badge */}
+        {(() => {
+          const hasUniplayProduct = products.some((p) => p.supplier === "uniplay");
+          const isInstant = hasUniplayProduct;
+          return (
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+                marginBottom: 24,
+              }}
+            >
+              <div
+                style={{
+                  padding: "10px 16px",
+                  background: isInstant
+                    ? "linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.1))"
+                    : "linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1))",
+                  border: isInstant
+                    ? "1.5px solid rgba(16,185,129,.5)"
+                    : "1.5px solid rgba(245,158,11,.5)",
+                  borderRadius: 10,
+                  color: isInstant ? "#6ee7b7" : "#fbbf24",
+                  fontSize: ".78rem",
+                  fontWeight: 800,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                {isInstant ? "⚡ Instant Process" : "⏱ Estimasi 0-120 menit"}
+              </div>
+              <div
+                style={{
+                  padding: "10px 16px",
+                  background: "linear-gradient(135deg,rgba(123,195,255,.18),rgba(123,195,255,.08))",
+                  border: "1.5px solid rgba(123,195,255,.45)",
+                  borderRadius: 10,
+                  color: "#7bc3ff",
+                  fontSize: ".78rem",
+                  fontWeight: 800,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                🔒 100% Legal & Aman
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Only show instructions if NOT just a website URL (sync sets "Website: ..." which is noise) */}
+        {game.instructions && !/^(website:|https?:\/\/)/i.test(game.instructions.trim()) && (
           <div
             style={{
               padding: "14px 18px",
