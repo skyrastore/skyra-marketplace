@@ -3,6 +3,10 @@
 // Docs: https://docs.midtrans.com/reference/snap-api
 // ═══════════════════════════════════════════════════════════
 
+import { env } from "./env";
+
+// Note: NEXT_PUBLIC_* vars inlined by webpack at build time, process.env works.
+// Server-side vars (SERVER_KEY) accessed via env() helper (runtime bindings).
 const MIDTRANS_ENV = process.env.NEXT_PUBLIC_MIDTRANS_ENV || "sandbox";
 const IS_PROD = MIDTRANS_ENV === "production";
 
@@ -55,7 +59,7 @@ function base64(input: string): string {
 // Create Snap transaction → returns snap token for frontend
 // ─────────────────────────────────────────────
 export async function createSnapTransaction(input: SnapTransactionInput): Promise<SnapTransactionResult> {
-  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+  const serverKey = env("MIDTRANS_SERVER_KEY");
   if (!serverKey) throw new Error("MIDTRANS_SERVER_KEY not set");
 
   const body = {
@@ -112,7 +116,7 @@ export async function verifyNotificationSignature(payload: {
   gross_amount: string;
   signature_key: string;
 }): Promise<boolean> {
-  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+  const serverKey = env("MIDTRANS_SERVER_KEY");
   if (!serverKey) return false;
 
   const expected = await sha512Hex(
