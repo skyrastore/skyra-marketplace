@@ -176,7 +176,7 @@ export default function GameDetailPage() {
           </div>
         )}
 
-        <div style={{ display: "grid", gap: 20, gridTemplateColumns: "1fr 340px" }}>
+        <div style={{ display: "grid", gap: 20 }}>
           <div>
             {/* Step 1: Input */}
             {inputFields.length > 0 && (
@@ -336,18 +336,17 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* Right: Summary (sticky) */}
+          {/* Summary: only appear after user picked payment + package */}
+          {selected && payment && (
           <div
             style={{
-              position: "sticky",
-              top: 90,
-              alignSelf: "start",
               padding: 22,
               background: "rgba(5,12,36,.96)",
               border: "1.5px solid rgba(123,195,255,.35)",
               borderRadius: 16,
               color: "#fff",
               boxShadow: "0 8px 30px rgba(0,0,0,.45)",
+              animation: "fadeInUp .35s ease",
             }}
           >
             <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
@@ -420,6 +419,7 @@ export default function GameDetailPage() {
               🔒 Pembayaran aman & terenkripsi.
             </div>
           </div>
+          )}
         </div>
       </div>
     </>

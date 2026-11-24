@@ -187,17 +187,9 @@ export default function Home() {
             <img src={LOGO_URL} alt="Skyra Store" />
           </div>
           <div className="splash-title">SKYRA STORE</div>
-          {isReturning ? (
-            <>
-              <div className="splash-sub">🛒 SILAHKAN LANJUT BELANJA! 🛒</div>
-              <div className="splash-tagline">Promo & game baru menantimu, happy top-up!</div>
-            </>
-          ) : (
-            <>
-              <div className="splash-sub">✨ SELAMAT DATANG, GAMER! ✨</div>
-              <div className="splash-tagline">Petualangan top-up favoritmu dimulai di sini</div>
-            </>
-          )}
+          <div className="splash-sub">
+            {isReturning ? "SILAHKAN LANJUT BERBELANJA" : "SELAMAT DATANG, GAMER"}
+          </div>
         </div>
       )}
 

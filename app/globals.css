@@ -93,6 +93,10 @@ body{
 @keyframes splashFadeOut{
   to{opacity:0;visibility:hidden}
 }
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
 
 /* ═══════════ TOP BAR ═══════════ */
 .top-strip{
@@ -150,6 +154,28 @@ body{
   border:0;cursor:pointer;font-family:inherit;
 }
 .nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(34,114,220,.7)}
+
+/* ─── NAV MOBILE RESPONSIVE ─── */
+@media(max-width:860px){
+  .nav-inner{flex-wrap:wrap;padding:10px 14px;gap:10px}
+  .nav-menu-main{display:none}
+  .nav-logo .brand{font-size:.95rem;letter-spacing:2px}
+  .nav-logo img{width:32px;height:32px}
+  .nav-search{order:3;flex-basis:100%;max-width:none;margin-left:0}
+  .nav-cta{padding:8px 14px;font-size:.75rem}
+}
+@media(max-width:400px){
+  .nav-logo .brand{display:none}
+  .nav-cta{padding:7px 12px}
+}
+
+/* ─── GAME DETAIL PAGE RESPONSIVE ─── */
+.game-detail-wrap{max-width:1100px;margin:20px auto 60px;padding:0 24px;position:relative;z-index:1}
+.game-detail-grid{display:grid;gap:20px;grid-template-columns:1fr}
+@media(min-width:900px){.game-detail-grid{grid-template-columns:1fr}}
+@media(max-width:640px){
+  .game-detail-wrap{padding:0 14px}
+}
 
 /* ═══════════ HERO CAROUSEL ═══════════ */
 .hero-wrap{max-width:1280px;margin:20px auto 0;padding:0 24px;position:relative;z-index:1}
