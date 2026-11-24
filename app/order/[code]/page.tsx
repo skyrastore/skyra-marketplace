@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { supabase, fmtIDR } from "@/lib/supabase";
+import {
+  Clock, Wallet, Settings, CheckCircle2, XCircle, Hourglass, Ban,
+  MessageCircle, Home, ClipboardList, Lightbulb, type LucideIcon,
+} from "lucide-react";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const ADMIN_WA = "6285183346300";
@@ -29,46 +33,46 @@ type Order = {
   fulfilled_at: string | null;
 };
 
-const STATUS_INFO: Record<string, { label: string; emoji: string; color: string; desc: string }> = {
+const STATUS_INFO: Record<string, { label: string; Icon: LucideIcon; color: string; desc: string }> = {
   pending_payment: {
     label: "Menunggu Pembayaran",
-    emoji: "⏳",
+    Icon: Clock,
     color: "#f59e0b",
     desc: "Silakan selesaikan pembayaran agar order dapat diproses.",
   },
   paid: {
     label: "Pembayaran Diterima",
-    emoji: "💰",
+    Icon: Wallet,
     color: "#3b82f6",
     desc: "Pembayaran berhasil! Order sedang diproses otomatis...",
   },
   fulfilling: {
     label: "Sedang Diproses",
-    emoji: "⚙️",
+    Icon: Settings,
     color: "#8b5cf6",
     desc: "Diamond/item sedang dikirim ke akun kamu...",
   },
   done: {
     label: "Selesai",
-    emoji: "✅",
+    Icon: CheckCircle2,
     color: "#10b981",
     desc: "Order berhasil! Cek akun game kamu — item sudah masuk.",
   },
   failed: {
     label: "Gagal",
-    emoji: "❌",
+    Icon: XCircle,
     color: "#ef4444",
     desc: "Order gagal diproses. Hubungi admin untuk refund atau retry.",
   },
   expired: {
     label: "Kadaluarsa",
-    emoji: "⌛",
+    Icon: Hourglass,
     color: "#9ca3af",
     desc: "Waktu pembayaran habis. Silakan buat order baru.",
   },
   cancelled: {
     label: "Dibatalkan",
-    emoji: "🚫",
+    Icon: Ban,
     color: "#9ca3af",
     desc: "Order dibatalkan.",
   },
@@ -118,7 +122,7 @@ export default function OrderStatusPage() {
   }, [params.code]);
 
   if (loading) {
-    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a" }}>⏳ Loading...</div>;
+    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}><Clock size={18} /> Loading...</div>;
   }
 
   if (notFound) {
@@ -133,7 +137,7 @@ export default function OrderStatusPage() {
     );
   }
 
-  const status = STATUS_INFO[order!.status] || { label: order!.status, emoji: "❓", color: "#9ca3af", desc: "" };
+  const status = STATUS_INFO[order!.status] || { label: order!.status, Icon: Clock, color: "#9ca3af", desc: "" };
 
   return (
     <>
@@ -163,7 +167,9 @@ export default function OrderStatusPage() {
             boxShadow: `0 10px 40px ${status.color}30`,
           }}
         >
-          <div style={{ fontSize: "3.5rem", marginBottom: 8, lineHeight: 1 }}>{status.emoji}</div>
+          <div style={{ marginBottom: 8, lineHeight: 1, color: status.color }}>
+            <status.Icon size={64} strokeWidth={1.8} />
+          </div>
           <h1
             style={{
               fontFamily: "'Fredoka'",
@@ -181,7 +187,7 @@ export default function OrderStatusPage() {
 
           {!["done", "failed", "expired", "cancelled"].includes(order!.status) && (
             <div style={{ fontSize: ".75rem", opacity: .6, marginTop: 14 }}>
-              🔄 Status di-refresh otomatis tiap 5 detik...
+              Status di-refresh otomatis tiap 5 detik…
             </div>
           )}
         </div>
@@ -198,8 +204,8 @@ export default function OrderStatusPage() {
             marginBottom: 20,
           }}
         >
-          <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
-            📋 Detail Order
+          <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <ClipboardList size={16} /> Detail Order
           </h3>
           {[
             ["Kode Order", order!.order_code],
@@ -251,7 +257,8 @@ export default function OrderStatusPage() {
                 lineHeight: 1.5,
               }}
             >
-              💡 Belum bayar? Tutup tab ini & retry order dari halaman game.
+              <Lightbulb size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 6 }} />
+              Belum bayar? Tutup tab ini & retry order dari halaman game.
             </div>
           )}
 
@@ -273,7 +280,9 @@ export default function OrderStatusPage() {
                 boxShadow: "0 6px 20px rgba(37,211,102,.4)",
               }}
             >
-              💬 Hubungi Admin via WhatsApp
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <MessageCircle size={16} /> Hubungi Admin via WhatsApp
+              </span>
             </a>
           )}
 
@@ -292,7 +301,9 @@ export default function OrderStatusPage() {
               fontSize: ".95rem",
             }}
           >
-            🏠 Kembali ke Beranda
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <Home size={16} /> Kembali ke Beranda
+            </span>
           </Link>
         </div>
       </div>

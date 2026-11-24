@@ -7,6 +7,11 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase, fmtIDR, type Game, type Product } from "@/lib/supabase";
 import { CATEGORY_ICON_URLS } from "@/lib/categoryIcons";
 import { toast } from "sonner";
+import {
+  Gift, Calendar, CalendarDays, Moon, Star, Trophy, CreditCard, Package, Gem,
+  CheckCircle2, Zap, Lock, Clock, Phone, Ticket, Pencil, ClipboardList,
+  MessageCircle, Flame, ArrowLeft, Minus, Plus, Lightbulb, type LucideIcon,
+} from "lucide-react";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const SNAP_JS_URL =
@@ -21,19 +26,19 @@ type InputField = { key: string; label: string; type: string; placeholder?: stri
 // Product category classifier (name-based)
 // Groups denoms into user-friendly tabs so long lists aren't a wall of text.
 // ─────────────────────────────────────────────
-function categorizeProduct(name: string): { key: string; label: string; icon: string } {
+function categorizeProduct(name: string): { key: string; label: string; Icon: LucideIcon } {
   const n = name.toLowerCase();
-  if (/first\s*(recharge|topup)|1st\s*topup|2x\s*diamond/.test(n)) return { key: "first", label: "First Recharge", icon: "🎁" };
-  if (/weekly.*(pass|diamond)|elite.*pack/.test(n)) return { key: "weekly", label: "Weekly Pass", icon: "📆" };
-  if (/monthly.*(pass|bundle|epic|ticket|card)/.test(n)) return { key: "monthly", label: "Monthly Pass", icon: "🗓️" };
-  if (/twilight/.test(n)) return { key: "twilight", label: "Twilight Pass", icon: "🌙" };
-  if (/starlight/.test(n)) return { key: "starlight", label: "Starlight", icon: "⭐" };
-  if (/battle.*pass|season.*pass|royale.*pass|elite.*pass/.test(n)) return { key: "season", label: "Season Pass", icon: "🏆" };
-  if (/membership|member\b|m-card/.test(n)) return { key: "member", label: "Membership", icon: "💳" };
-  if (/bundle|pack|gift|voucher.*(bundle|special)/.test(n)) return { key: "bundle", label: "Bundle", icon: "🎀" };
-  if (/sub\s*package|package|paket/.test(n)) return { key: "paket", label: "Paket", icon: "📦" };
+  if (/first\s*(recharge|topup)|1st\s*topup|2x\s*diamond/.test(n)) return { key: "first", label: "First Recharge", Icon: Gift };
+  if (/weekly.*(pass|diamond)|elite.*pack/.test(n)) return { key: "weekly", label: "Weekly Pass", Icon: Calendar };
+  if (/monthly.*(pass|bundle|epic|ticket|card)/.test(n)) return { key: "monthly", label: "Monthly Pass", Icon: CalendarDays };
+  if (/twilight/.test(n)) return { key: "twilight", label: "Twilight Pass", Icon: Moon };
+  if (/starlight/.test(n)) return { key: "starlight", label: "Starlight", Icon: Star };
+  if (/battle.*pass|season.*pass|royale.*pass|elite.*pass/.test(n)) return { key: "season", label: "Season Pass", Icon: Trophy };
+  if (/membership|member\b|m-card/.test(n)) return { key: "member", label: "Membership", Icon: CreditCard };
+  if (/bundle|pack|gift|voucher.*(bundle|special)/.test(n)) return { key: "bundle", label: "Bundle", Icon: Gift };
+  if (/sub\s*package|package|paket/.test(n)) return { key: "paket", label: "Paket", Icon: Package };
   // Default: regular topup currency (Diamonds, UC, VP, Gold, etc.)
-  return { key: "topup", label: "Top Up", icon: "💎" };
+  return { key: "topup", label: "Top Up", Icon: Gem };
 }
 
 // Snap.js is loaded from CDN — minimal typing so TS doesn't complain
@@ -169,7 +174,7 @@ export default function GameDetailPage() {
   }, [params.slug, router]);
 
   if (loading) {
-    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a" }}>⏳ Loading...</div>;
+    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}><Clock size={18} /> Loading...</div>;
   }
   if (!game) {
     return (
@@ -345,9 +350,9 @@ export default function GameDetailPage() {
                 {/* Badges row ABOVE title — all unified blue */}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                   {[
-                    { icon: "✓", label: "Distributor Resmi" },
-                    { icon: isInstant ? "⚡" : "⏱", label: isInstant ? "Isi Ulang Instan" : "Proses 0-120 menit" },
-                    { icon: "🔒", label: "Pembayaran Aman" },
+                    { Icon: CheckCircle2, label: "Distributor Resmi" },
+                    { Icon: isInstant ? Zap : Clock, label: isInstant ? "Isi Ulang Instan" : "Proses 0-120 menit" },
+                    { Icon: Lock, label: "Pembayaran Aman" },
                   ].map((b, i) => (
                     <span
                       key={i}
@@ -360,9 +365,13 @@ export default function GameDetailPage() {
                         fontSize: ".68rem",
                         fontWeight: 800,
                         letterSpacing: ".02em",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
                       }}
                     >
-                      {b.icon} {b.label}
+                      <b.Icon size={12} strokeWidth={2.5} />
+                      {b.label}
                     </span>
                   ))}
                 </div>
@@ -398,7 +407,7 @@ export default function GameDetailPage() {
               lineHeight: 1.5,
             }}
           >
-            💡 {game.instructions}
+            <Lightbulb size={14} style={{ display: "inline", verticalAlign: "-3px", marginRight: 6 }} />{game.instructions}
           </div>
         )}
 
@@ -455,12 +464,12 @@ export default function GameDetailPage() {
             {/* Step 2: Pick denom — with category filter */}
             {(() => {
               // Compute categories present in this game's products
-              const cats = new Map<string, { label: string; icon: string; count: number }>();
+              const cats = new Map<string, { label: string; Icon: LucideIcon; count: number }>();
               for (const p of products) {
                 const c = categorizeProduct(p.name);
                 const cur = cats.get(c.key);
                 if (cur) cur.count++;
-                else cats.set(c.key, { label: c.label, icon: c.icon, count: 1 });
+                else cats.set(c.key, { label: c.label, Icon: c.Icon, count: 1 });
               }
               const catList = Array.from(cats.entries()).map(([key, v]) => ({ key, ...v }));
               const activeCat = selectedCategory ?? catList[0]?.key ?? null;
@@ -524,7 +533,7 @@ export default function GameDetailPage() {
                             {imgUrl ? (
                               <img src={imgUrl} alt="" style={{ width: 20, height: 20, objectFit: "contain", borderRadius: 4 }} />
                             ) : (
-                              <span>{c.icon}</span>
+                              <c.Icon size={16} strokeWidth={2.2} />
                             )}
                             <span>{c.label}</span>
                             <span style={{ opacity: .5, fontSize: ".7rem" }}>({c.count})</span>
@@ -585,7 +594,7 @@ export default function GameDetailPage() {
                                   borderRadius: 99,
                                 }}
                               >
-                                🔥 HOT
+                                <Flame size={9} style={{ display: "inline", verticalAlign: "-1px" }} /> HOT
                               </span>
                             )}
                             <div
@@ -607,7 +616,7 @@ export default function GameDetailPage() {
                               {itemImg ? (
                                 <img src={itemImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                               ) : (
-                                cat.icon
+                                <cat.Icon size={20} strokeWidth={2.2} color={isSelected ? "#fff" : "#2272dc"} />
                               )}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -659,7 +668,7 @@ export default function GameDetailPage() {
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
-                {inputFields.length > 0 ? "3." : "2."} 📱 Nomor WhatsApp
+                {inputFields.length > 0 ? "3." : "2."} <Phone size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> Nomor WhatsApp
               </h3>
               <div style={{ fontSize: ".78rem", color: "#64748b", marginBottom: 12, fontWeight: 600 }}>
                 Wajib. Buat notifikasi + kontak admin kalau ada pending.
@@ -698,7 +707,7 @@ export default function GameDetailPage() {
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
-                🎟️ Kode Voucher <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
+                <Ticket size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> Kode Voucher <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
               </h3>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
@@ -778,7 +787,7 @@ export default function GameDetailPage() {
                     fontWeight: 700,
                   }}
                 >
-                  ✅ {voucherApplied.message} — hemat {fmtIDR(discountAmount)}
+                  <CheckCircle2 size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {voucherApplied.message} — hemat {fmtIDR(discountAmount)}
                 </div>
               )}
             </div>
@@ -795,7 +804,7 @@ export default function GameDetailPage() {
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
-                📝 Catatan Order <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
+                <Pencil size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> Catatan Order <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
               </h3>
               <div style={{ fontSize: ".75rem", color: "#64748b", marginBottom: 10, fontWeight: 600 }}>
                 Contoh: proses malam ya, hati2 jangan ganti password, dsb.
@@ -841,7 +850,7 @@ export default function GameDetailPage() {
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
-                📋 Ringkasan Order
+                <ClipboardList size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> Ringkasan Order
               </h3>
               {[
                 ["Game", game.name.split(":")[0]],
@@ -895,7 +904,10 @@ export default function GameDetailPage() {
                   transition: ".2s",
                 }}
               >
-                {paying ? "⏳ Memproses…" : "💳 Bayar Sekarang"}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  {paying ? <Clock size={16} /> : <CreditCard size={16} />}
+                  {paying ? "Memproses…" : "Bayar Sekarang"}
+                </span>
               </button>
 
               {/* Secondary: WA fallback */}
@@ -916,7 +928,10 @@ export default function GameDetailPage() {
                   transition: ".2s",
                 }}
               >
-                💬 Atau pesan via WhatsApp
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <MessageCircle size={16} />
+                  Atau pesan via WhatsApp
+                </span>
               </button>
 
               <div
@@ -932,7 +947,7 @@ export default function GameDetailPage() {
                   lineHeight: 1.45,
                 }}
               >
-                💡 Klik <b>Bayar Sekarang</b> → pilih QRIS / E-Wallet / Bank Transfer / CC di popup. Otomatis diproses setelah bayar.
+                <Lightbulb size={12} style={{ display: "inline", verticalAlign: "-1px", marginRight: 4 }} /> Klik <b>Bayar Sekarang</b> → pilih QRIS / E-Wallet / Bank Transfer / CC di popup. Otomatis diproses setelah bayar.
               </div>
             </div>
           )}

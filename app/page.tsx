@@ -2,15 +2,20 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase, fmtIDR, type Game, type Promo } from "@/lib/supabase";
+import {
+  Gamepad2, Smartphone, Ticket, Zap, Swords, Sparkles, Star, Flame, Target,
+  Wallet, ShieldCheck, Clock, ArrowUpRight, Search as SearchIcon,
+  type LucideIcon,
+} from "lucide-react";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 
-const CATEGORIES = [
-  { key: "all", label: "Semua", icon: "🎮" },
-  { key: "mobile", label: "Mobile Games", icon: "📱" },
-  { key: "voucher", label: "Voucher", icon: "🎫" },
-  { key: "ppob", label: "PPOB", icon: "⚡" },
-  { key: "joki", label: "Joki", icon: "⚔️" },
+const CATEGORIES: { key: string; label: string; Icon: LucideIcon }[] = [
+  { key: "all", label: "Semua", Icon: Gamepad2 },
+  { key: "mobile", label: "Mobile Games", Icon: Smartphone },
+  { key: "voucher", label: "Voucher", Icon: Ticket },
+  { key: "ppob", label: "PPOB", Icon: Zap },
+  { key: "joki", label: "Joki", Icon: Swords },
 ];
 
 // Helper: card component (handles external_url redirect)
@@ -46,11 +51,36 @@ function GameCard({ g }: { g: Game }) {
 
 // Helper: portrait special/joki card
 function SpecialCard({ g, badge }: { g: Game; badge?: "SPECIAL" | "JOKI" }) {
+  // Derive method variant from slug suffix so split-method games
+  // (roblox-login vs roblox-username, sky-via-id vs sky-via-login vs sky-via-gift)
+  // are visually distinguishable even when sharing cover art.
+  const m = g.slug.match(/-via-(\w+)$|-(login|username)$/i);
+  const variant = (m?.[1] || m?.[2] || "").toUpperCase();
+
   const content = (
     <>
-      {g.external_url && <span className="sp-ext-badge">↗ EXTERNAL</span>}
-      {badge === "SPECIAL" && <span className="sp-hot-badge">⚡ FLASHSALE</span>}
-      {badge === "JOKI" && <span className="sp-hot-badge" style={{ background: "linear-gradient(135deg,#a855f7,#ec4899)" }}>🎯 JOKI</span>}
+      {g.external_url && <span className="sp-ext-badge">EXTERNAL</span>}
+      {badge === "SPECIAL" && !variant && <span className="sp-hot-badge">FLASHSALE</span>}
+      {badge === "JOKI" && <span className="sp-hot-badge" style={{ background: "linear-gradient(135deg,#a855f7,#ec4899)" }}>JOKI</span>}
+      {variant && (
+        <span
+          className="sp-hot-badge"
+          style={{
+            background:
+              variant === "LOGIN"
+                ? "linear-gradient(135deg,#f97316,#ef4444)"
+                : variant === "USERNAME"
+                ? "linear-gradient(135deg,#10b981,#059669)"
+                : variant === "ID"
+                ? "linear-gradient(135deg,#3b82f6,#1d4ed8)"
+                : variant === "GIFT"
+                ? "linear-gradient(135deg,#ec4899,#a855f7)"
+                : "linear-gradient(135deg,#64748b,#475569)",
+          }}
+        >
+          via {variant}
+        </span>
+      )}
       <img
         src={g.image_url || "https://via.placeholder.com/300x400/1a52b8/ffffff?text=" + encodeURIComponent(g.name)}
         alt={g.name}
@@ -63,7 +93,7 @@ function SpecialCard({ g, badge }: { g: Game; badge?: "SPECIAL" | "JOKI" }) {
           {g.instructions && <div className="sp-desc">{g.instructions}</div>}
         </div>
         <div className="sp-btn">
-          {g.external_url ? "ORDER SEKARANG ↗" : "TOP UP SEKARANG →"}
+          {g.external_url ? "ORDER SEKARANG" : "TOP UP SEKARANG"}
         </div>
       </div>
     </>
@@ -206,31 +236,25 @@ export default function Home() {
 
       <canvas id="stars" aria-hidden="true"></canvas>
 
-      {/* ═══════════ TOP STRIP ═══════════ */}
-      <div className="top-strip">
-        <div className="top-menu">
-          <Link href="/saldo">💰 Cek Saldo</Link>
-          <Link href="/">🏠 Home</Link>
-          <Link href="/lacak">📦 Lacak Pesanan</Link>
-        </div>
-        <div className="right">
-          <div className="lang-sw">
-            <button className={lang === "id" ? "on" : ""} onClick={() => setLang("id")}>ID</button>
-            <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════ NAVBAR ═══════════ */}
+      {/* ═══════════ NAVBAR (unified — logo + nav items + ID/EN + MASUK on one row) ═══════════ */}
       <nav className="nav">
         <div className="nav-inner">
           <Link href="/" className="nav-logo">
             <img src={LOGO_URL} alt="Skyra" />
             <span className="brand">SKYRA STORE</span>
           </Link>
-          <Link href="/login" className="nav-cta" style={{ marginLeft: "auto" }}>
-            MASUK
-          </Link>
+          <div className="nav-menu-main">
+            <Link href="/">Home</Link>
+            <Link href="/lacak">Lacak Pesanan</Link>
+            <Link href="/saldo">Cek Saldo</Link>
+          </div>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+            <div className="lang-sw">
+              <button className={lang === "id" ? "on" : ""} onClick={() => setLang("id")}>ID</button>
+              <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
+            </div>
+            <Link href="/login" className="nav-cta">MASUK</Link>
+          </div>
         </div>
       </nav>
 
@@ -271,7 +295,7 @@ export default function Home() {
                     <div className="sd-info">
                       <div className="sd-name">{g.name}</div>
                       <div className="sd-tag">
-                        {g.external_url ? "↗ External" : "⚡ Instant"}
+                        {g.external_url ? "External" : "Instant"}
                       </div>
                     </div>
                   </>
@@ -332,7 +356,7 @@ export default function Home() {
                       </div>
                       {p.subtitle && <div className="slide-sub">{p.subtitle}</div>}
                     </div>
-                    {!p.image_url && <div className="slide-art">✨</div>}
+                    {!p.image_url && <div className="slide-art"><Sparkles size={110} /></div>}
                   </>
                 );
                 const bg = p.background_gradient || "linear-gradient(135deg,#1a52b8,#2272dc,#4a8dff)";
@@ -353,7 +377,7 @@ export default function Home() {
                   <div className="slide-title">Top Up Game Favoritmu</div>
                   <div className="slide-sub">Hemat · Cepat · Aman. QRIS, PayPal, Wise — proses instant.</div>
                 </div>
-                <div className="slide-art">🎮</div>
+                <div className="slide-art"><Gamepad2 size={110} /></div>
               </div>
             )}
           </div>
@@ -385,7 +409,7 @@ export default function Home() {
         <div className="cats">
           {CATEGORIES.map((c) => (
             <button key={c.key} className={`cat ${cat === c.key ? "on" : ""}`} onClick={() => setCat(c.key)}>
-              <span className="ic">{c.icon}</span> {c.label}
+              <c.Icon size={16} strokeWidth={2.2} /> {c.label}
             </button>
           ))}
         </div>
@@ -393,7 +417,7 @@ export default function Home() {
 
       {loading ? (
         <div className="section" style={{ textAlign: "center", padding: "40px", color: "rgba(255,255,255,.7)" }}>
-          ⏳ Loading catalog...
+          <Clock size={18} style={{ display: "inline", verticalAlign: "-3px", marginRight: 6 }} /> Loading catalog...
         </div>
       ) : search ? (
         /* ─── SEARCH MODE: flat grid of filtered results ─── */
@@ -423,10 +447,12 @@ export default function Home() {
             games.filter((g) => g.is_special_offer).length > 0 && (
               <div className="section">
                 <div className="sec-head">
-                  <h2>
-                    <span className="ic">⭐</span> Special Offer
+                  <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Star size={22} fill="currentColor" /> Special Offer
                   </h2>
-                  <div className="meta">🔥 Handle by Skyra</div>
+                  <div className="meta" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <Flame size={12} /> Handle by Skyra
+                  </div>
                 </div>
                 <div className="special-grid">
                   {games
@@ -443,10 +469,12 @@ export default function Home() {
             games.filter((g) => g.category === "joki").length > 0 && (
               <div className="section">
                 <div className="sec-head">
-                  <h2>
-                    <span className="ic">🎯</span> Joki Skyra
+                  <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Target size={22} /> Joki Skyra
                   </h2>
-                  <div className="meta">⚔️ Jasa Pribadi</div>
+                  <div className="meta" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <Swords size={12} /> Jasa Pribadi
+                  </div>
                 </div>
                 <div className="special-grid">
                   {games
@@ -464,8 +492,8 @@ export default function Home() {
               {/* Mobile section */}
               <div className="section">
                 <div className="sec-head">
-                  <h2>
-                    <span className="ic">📱</span> Semua Mobile Game
+                  <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Smartphone size={22} /> Semua Mobile Game
                   </h2>
                   <div className="meta">
                     {games.filter((g) => g.category === "mobile" && !g.is_special_offer).length} game
@@ -484,8 +512,8 @@ export default function Home() {
               {games.filter((g) => g.category === "voucher").length > 0 && (
                 <div className="section">
                   <div className="sec-head">
-                    <h2>
-                      <span className="ic">🎫</span> Voucher &amp; PC Games
+                    <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Ticket size={22} /> Voucher &amp; PC Games
                     </h2>
                     <div className="meta">
                       {games.filter((g) => g.category === "voucher").length} voucher
@@ -505,10 +533,11 @@ export default function Home() {
             /* Specific category (mobile / voucher / ppob) - flat grid */
             <div className="section">
               <div className="sec-head">
-                <h2>
-                  <span className="ic">
-                    {CATEGORIES.find((c) => c.key === cat)?.icon}
-                  </span>{" "}
+                <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {(() => {
+                    const C = CATEGORIES.find((c) => c.key === cat)?.Icon;
+                    return C ? <C size={22} strokeWidth={2.2} /> : null;
+                  })()}
                   {CATEGORIES.find((c) => c.key === cat)?.label}
                 </h2>
                 <div className="meta">{filteredGames.length} game</div>
@@ -532,13 +561,13 @@ export default function Home() {
       {/* ═══════════ FEATURES ═══════════ */}
       <div className="feats">
         {[
-          { ic: "⚡", t: "Instant Delivery", d: "Otomatis proses <5 menit" },
-          { ic: "💰", t: "Harga Termurah", d: "Auto-check multi supplier" },
-          { ic: "🛡️", t: "Refund 100%", d: "Gagal = balik modal" },
-          { ic: "⭐", t: "5.0/5 Rating", d: "1000+ customer puas" },
+          { Ic: Zap, t: "Instant Delivery", d: "Otomatis proses <5 menit" },
+          { Ic: Wallet, t: "Harga Termurah", d: "Auto-check multi supplier" },
+          { Ic: ShieldCheck, t: "Refund 100%", d: "Gagal = balik modal" },
+          { Ic: Star, t: "5.0/5 Rating", d: "1000+ customer puas" },
         ].map((f, i) => (
           <div key={i} className="feat">
-            <div className="feat-ic">{f.ic}</div>
+            <div className="feat-ic"><f.Ic size={22} strokeWidth={2.2} /></div>
             <div>
               <div className="feat-t">{f.t}</div>
               <div className="feat-d">{f.d}</div>
