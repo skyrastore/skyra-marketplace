@@ -2,14 +2,14 @@
 
 import { MessageCircle } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "./i18n-provider";
 
 const ADMIN_WA = "6285183346300";
-const CS_HOURS = "24/7 · Response < 5 menit";
-const PRESET_MESSAGE = "Halo admin Skyra, saya butuh bantuan untuk…";
 
 export function CSButton() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  const url = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(PRESET_MESSAGE)}`;
+  const url = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(t("cs.preset"))}`;
 
   return (
     <>
@@ -42,12 +42,12 @@ export function CSButton() {
               <MessageCircle size={22} />
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: ".92rem", color: "#0f172a" }}>Hubungi Admin</div>
-              <div style={{ fontSize: ".7rem", color: "#64748b", fontWeight: 600 }}>{CS_HOURS}</div>
+              <div style={{ fontWeight: 800, fontSize: ".92rem", color: "#0f172a" }}>{t("cs.title")}</div>
+              <div style={{ fontSize: ".7rem", color: "#64748b", fontWeight: 600 }}>{t("cs.hours")}</div>
             </div>
           </div>
           <div style={{ fontSize: ".82rem", color: "#334155", marginBottom: 12, lineHeight: 1.45, fontWeight: 500 }}>
-            Punya pertanyaan atau butuh bantuan? Chat admin kami di WhatsApp!
+            {t("cs.body")}
           </div>
           <a
             href={url}
@@ -70,7 +70,7 @@ export function CSButton() {
             }}
           >
             <MessageCircle size={16} />
-            Mulai Chat
+            {t("cs.start")}
           </a>
         </div>
       )}

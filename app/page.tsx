@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase, fmtIDR, type Game, type Promo } from "@/lib/supabase";
+import { useI18n } from "@/components/i18n-provider";
 import {
   Gamepad2, Smartphone, Ticket, Zap, Swords, Sparkles, Star, Flame, Target,
   Wallet, ShieldCheck, Clock, ArrowUpRight, Search as SearchIcon, Menu, X,
@@ -10,16 +11,17 @@ import {
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 
-const CATEGORIES: { key: string; label: string; Icon: LucideIcon }[] = [
-  { key: "all", label: "Semua", Icon: Gamepad2 },
-  { key: "mobile", label: "Mobile Games", Icon: Smartphone },
-  { key: "voucher", label: "Voucher", Icon: Ticket },
-  { key: "ppob", label: "PPOB", Icon: Zap },
-  { key: "joki", label: "Joki", Icon: Swords },
+const CATEGORIES: { key: string; tKey: string; Icon: LucideIcon }[] = [
+  { key: "all", tKey: "cat.all", Icon: Gamepad2 },
+  { key: "mobile", tKey: "cat.mobile", Icon: Smartphone },
+  { key: "voucher", tKey: "cat.voucher", Icon: Ticket },
+  { key: "ppob", tKey: "cat.ppob", Icon: Zap },
+  { key: "joki", tKey: "cat.joki", Icon: Swords },
 ];
 
 // Helper: card component (handles external_url redirect)
 function GameCard({ g }: { g: Game }) {
+  const { t } = useI18n();
   const content = (
     <>
       <div
@@ -51,6 +53,7 @@ function GameCard({ g }: { g: Game }) {
 
 // Helper: portrait special/joki card
 function SpecialCard({ g, badge }: { g: Game; badge?: "SPECIAL" | "JOKI" }) {
+  const { t } = useI18n();
   // Derive method variant from slug suffix so split-method games
   // (roblox-login vs roblox-username, sky-via-id vs sky-via-login vs sky-via-gift)
   // are visually distinguishable even when sharing cover art.
@@ -93,7 +96,7 @@ function SpecialCard({ g, badge }: { g: Game; badge?: "SPECIAL" | "JOKI" }) {
           {g.instructions && <div className="sp-desc">{g.instructions}</div>}
         </div>
         <div className="sp-btn">
-          {g.external_url ? "ORDER SEKARANG" : "TOP UP SEKARANG"}
+          {g.external_url ? t("card.order_now") : t("card.topup_now")}
         </div>
       </div>
     </>
@@ -119,31 +122,22 @@ export default function Home() {
   const [cat, setCat] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
   const [searchFocus, setSearchFocus] = useState(false);
-  const [lang, setLang] = useState<"id" | "en">("id");
+  const { lang, setLang, t } = useI18n();
   const [promos, setPromos] = useState<Promo[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  // Hide splash after animation + track returning visitor + restore lang
+  // Hide splash after animation + track returning visitor
   useEffect(() => {
     if (typeof window !== "undefined") {
       const visited = sessionStorage.getItem("skyra_visited");
       if (visited) setIsReturning(true);
       sessionStorage.setItem("skyra_visited", "1");
-      const savedLang = localStorage.getItem("skyra_lang");
-      if (savedLang === "en" || savedLang === "id") setLang(savedLang);
     }
-    const t = setTimeout(() => setSplashHide(true), 3200);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setSplashHide(true), 3200);
+    return () => clearTimeout(timer);
   }, []);
-
-  // Persist lang choice
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("skyra_lang", lang);
-    }
-  }, [lang]);
 
   // Fetch promos + games
   useEffect(() => {
@@ -228,9 +222,9 @@ export default function Home() {
           <div className="splash-logo">
             <img src={LOGO_URL} alt="Skyra Store" />
           </div>
-          <div className="splash-title">SKYRA STORE</div>
+          <div className="splash-title">{t("splash.title")}</div>
           <div className="splash-sub">
-            {isReturning ? "SILAHKAN LANJUT BERBELANJA" : "SELAMAT DATANG, GAMER"}
+            {isReturning ? t("splash.returning") : t("splash.new")}
           </div>
         </div>
       )}
@@ -245,15 +239,15 @@ export default function Home() {
             <span className="brand">SKYRA STORE</span>
           </Link>
           <div className="nav-menu-main">
-            <Link href="/">Home</Link>
-            <Link href="/lacak">Lacak Pesanan</Link>
+            <Link href="/">{t("nav.home")}</Link>
+            <Link href="/lacak">{t("nav.track")}</Link>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
             <div className="lang-sw">
               <button className={lang === "id" ? "on" : ""} onClick={() => setLang("id")}>ID</button>
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
             </div>
-            <Link href="/login" className="nav-cta">MASUK</Link>
+            <Link href="/login" className="nav-cta">{t("nav.login")}</Link>
             <button
               className="nav-burger"
               aria-label="Open menu"
@@ -267,9 +261,9 @@ export default function Home() {
         {/* Mobile drawer (appears below nav on small screens) */}
         {mobileNavOpen && (
           <div className="nav-drawer">
-            <Link href="/" onClick={() => setMobileNavOpen(false)}>Home</Link>
-            <Link href="/lacak" onClick={() => setMobileNavOpen(false)}>Lacak Pesanan</Link>
-            <Link href="/login" onClick={() => setMobileNavOpen(false)}>Masuk</Link>
+            <Link href="/" onClick={() => setMobileNavOpen(false)}>{t("nav.home")}</Link>
+            <Link href="/lacak" onClick={() => setMobileNavOpen(false)}>{t("nav.track")}</Link>
+            <Link href="/login" onClick={() => setMobileNavOpen(false)}>{t("nav.login")}</Link>
           </div>
         )}
       </nav>
@@ -311,7 +305,7 @@ export default function Home() {
                     <div className="sd-info">
                       <div className="sd-name">{g.name}</div>
                       <div className="sd-tag">
-                        {g.external_url ? "External" : "Instant"}
+                        {g.external_url ? t("card.external") : t("card.instant")}
                       </div>
                     </div>
                   </>
@@ -425,7 +419,7 @@ export default function Home() {
         <div className="cats">
           {CATEGORIES.map((c) => (
             <button key={c.key} className={`cat ${cat === c.key ? "on" : ""}`} onClick={() => setCat(c.key)}>
-              <c.Icon size={16} strokeWidth={2.2} /> {c.label}
+              <c.Icon size={16} strokeWidth={2.2} /> {t(c.tKey)}
             </button>
           ))}
         </div>
@@ -464,10 +458,10 @@ export default function Home() {
               <div className="section">
                 <div className="sec-head">
                   <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Star size={22} fill="currentColor" /> Special Offer
+                    <Star size={22} fill="currentColor" /> {t("sec.special_offer")}
                   </h2>
                   <div className="meta" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <Flame size={12} /> Handle by Skyra
+                    <Flame size={12} /> {t("sec.handled_by_skyra")}
                   </div>
                 </div>
                 <div className="special-grid">
@@ -486,10 +480,10 @@ export default function Home() {
               <div className="section">
                 <div className="sec-head">
                   <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Target size={22} /> Joki Skyra
+                    <Target size={22} /> {t("sec.joki_skyra")}
                   </h2>
                   <div className="meta" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <Swords size={12} /> Jasa Pribadi
+                    <Swords size={12} /> {t("sec.personal_service")}
                   </div>
                 </div>
                 <div className="special-grid">
@@ -509,7 +503,7 @@ export default function Home() {
               <div className="section">
                 <div className="sec-head">
                   <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Smartphone size={22} /> Semua Mobile Game
+                    <Smartphone size={22} /> {t("sec.all_mobile")}
                   </h2>
                   <div className="meta">
                     {games.filter((g) => g.category === "mobile" && !g.is_special_offer).length} game
@@ -529,7 +523,7 @@ export default function Home() {
                 <div className="section">
                   <div className="sec-head">
                     <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Ticket size={22} /> Voucher &amp; PC Games
+                      <Ticket size={22} /> {t("sec.voucher_pc")}
                     </h2>
                     <div className="meta">
                       {games.filter((g) => g.category === "voucher").length} voucher
@@ -554,7 +548,7 @@ export default function Home() {
                     const C = CATEGORIES.find((c) => c.key === cat)?.Icon;
                     return C ? <C size={22} strokeWidth={2.2} /> : null;
                   })()}
-                  {CATEGORIES.find((c) => c.key === cat)?.label}
+                  {t(CATEGORIES.find((c) => c.key === cat)?.tKey || "cat.all")}
                 </h2>
                 <div className="meta">{filteredGames.length} game</div>
               </div>
@@ -577,16 +571,16 @@ export default function Home() {
       {/* ═══════════ FEATURES ═══════════ */}
       <div className="feats">
         {[
-          { Ic: Zap, t: "Instant Delivery", d: "Otomatis proses <5 menit" },
-          { Ic: Wallet, t: "Harga Termurah", d: "Auto-check multi supplier" },
-          { Ic: ShieldCheck, t: "Refund 100%", d: "Gagal = balik modal" },
-          { Ic: Star, t: "5.0/5 Rating", d: "1000+ customer puas" },
+          { Ic: Zap, tKey: "feat.instant" },
+          { Ic: Wallet, tKey: "feat.cheap" },
+          { Ic: ShieldCheck, tKey: "feat.refund" },
+          { Ic: Star, tKey: "feat.rating" },
         ].map((f, i) => (
           <div key={i} className="feat">
             <div className="feat-ic"><f.Ic size={22} strokeWidth={2.2} /></div>
             <div>
-              <div className="feat-t">{f.t}</div>
-              <div className="feat-d">{f.d}</div>
+              <div className="feat-t">{t(`${f.tKey}.t`)}</div>
+              <div className="feat-d">{t(`${f.tKey}.d`)}</div>
             </div>
           </div>
         ))}

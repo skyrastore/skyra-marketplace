@@ -4,6 +4,7 @@ import "lenis/dist/lenis.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { Toaster } from "@/components/ui/sonner";
 import { CSButton } from "@/components/cs-button";
+import { I18nProvider } from "@/components/i18n-provider";
 
 export const metadata: Metadata = {
   title: "Skyra Store — Top Up Game Termurah & Terpercaya",
@@ -34,10 +35,12 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <SmoothScroll />
-        {children}
-        <CSButton />
-        <Toaster />
+        <I18nProvider>
+          <SmoothScroll />
+          {children}
+          <CSButton />
+          <Toaster />
+        </I18nProvider>
       </body>
     </html>
   );
