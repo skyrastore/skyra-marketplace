@@ -556,7 +556,11 @@ export default function Home() {
               <span>SKYRA STORE</span>
             </div>
             <p>Top-up game terpercaya untuk Sky: Children of the Light, Mobile Legends, Free Fire & lainnya. Hemat, instant, 24/7.</p>
-            <p style={{ color: "rgba(255,255,255,.5)", fontSize: ".72rem" }}>📸 @skyra_store2 · 💬 6285183346300</p>
+            <p style={{ color: "rgba(255,255,255,.65)", fontSize: ".78rem", fontWeight: 600 }}>
+              📸 <a href="https://instagram.com/skyra_store2" target="_blank" rel="noopener noreferrer" style={{ color: "#7bc3ff", textDecoration: "none" }}>@skyra_store2</a>
+              {" · "}
+              💬 <a href="https://wa.me/6285183346300" target="_blank" rel="noopener noreferrer" style={{ color: "#7bc3ff", textDecoration: "none" }}>6285183346300</a>
+            </p>
           </div>
           <div className="col">
             <h4>Layanan</h4>

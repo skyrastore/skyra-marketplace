@@ -19,7 +19,74 @@ export default function GameDetailPage() {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [payment, setPayment] = useState("QRIS");
   const [phone, setPhone] = useState("");
+  const [notes, setNotes] = useState("");
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherChecking, setVoucherChecking] = useState(false);
+  const [voucherApplied, setVoucherApplied] = useState<{
+    code: string;
+    discount_type: string;
+    discount_value: number;
+    max_discount_idr: number | null;
+    message: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const ADMIN_WA = "6285183346300";
+
+  const checkVoucher = async () => {
+    const code = voucherCode.trim().toUpperCase();
+    if (!code) return;
+    setVoucherChecking(true);
+    setVoucherApplied(null);
+    try {
+      const { data } = await supabase
+        .from("vouchers")
+        .select("*")
+        .eq("code", code)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (!data) {
+        alert("Kode voucher tidak ditemukan atau sudah expired 😔");
+        return;
+      }
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        alert("Voucher sudah expired");
+        return;
+      }
+      if (data.max_uses && data.used_count >= data.max_uses) {
+        alert("Voucher sudah habis terpakai");
+        return;
+      }
+      if (!selected) {
+        alert("Pilih paket dulu sebelum apply voucher");
+        return;
+      }
+      if (selected.price_idr < data.min_purchase_idr) {
+        alert(`Min belanja untuk voucher ini: ${fmtIDR(data.min_purchase_idr)}`);
+        return;
+      }
+      setVoucherApplied({
+        code: data.code,
+        discount_type: data.discount_type,
+        discount_value: data.discount_value,
+        max_discount_idr: data.max_discount_idr,
+        message: data.description || "Voucher berhasil diterapkan",
+      });
+    } finally {
+      setVoucherChecking(false);
+    }
+  };
+
+  // Compute discount amount
+  const discountAmount = (() => {
+    if (!voucherApplied || !selected) return 0;
+    if (voucherApplied.discount_type === "percentage") {
+      const d = Math.floor((selected.price_idr * voucherApplied.discount_value) / 100);
+      return voucherApplied.max_discount_idr ? Math.min(d, voucherApplied.max_discount_idr) : d;
+    }
+    return voucherApplied.discount_value;
+  })();
+  const finalPrice = selected ? Math.max(0, selected.price_idr - discountAmount) : 0;
 
   useEffect(() => {
     async function load() {
@@ -80,19 +147,32 @@ export default function GameDetailPage() {
         return;
       }
     }
-    alert(
-      `Order siap dikirim ke admin:\n\n` +
-        `Game: ${game.name}\n` +
-        `Paket: ${selected.name}\n` +
-        `Harga: ${fmtIDR(selected.price_idr)}\n` +
-        `Payment: ${payment}\n` +
-        `WhatsApp: ${phone}\n\n` +
-        `Data:\n` +
-        Object.entries(formData)
-          .map(([k, v]) => `  ${k}: ${v}`)
-          .join("\n") +
-        `\n\n(Checkout + Midtrans integration coming soon!)`
-    );
+
+    // Generate WhatsApp link
+    const g = game!;
+    const dataLines = inputFields
+      .map((f) => `• ${f.label}: ${formData[f.key] || "-"}`)
+      .join("\n");
+    const msg =
+      `🛒 *ORDER SKYRA STORE*\n` +
+      `━━━━━━━━━━━━━━━━━\n` +
+      `🎮 Game: *${g.name}*\n` +
+      `💎 Paket: *${selected.name}*\n` +
+      `💵 Harga: ${fmtIDR(selected.price_idr)}\n` +
+      (voucherApplied
+        ? `🎟️ Voucher: *${voucherApplied.code}* (-${fmtIDR(discountAmount)})\n`
+        : "") +
+      `💰 *TOTAL: ${fmtIDR(finalPrice)}*\n` +
+      `💳 Payment: ${payment}\n` +
+      `📱 WA: ${phone}\n` +
+      `━━━━━━━━━━━━━━━━━\n` +
+      `*Data Akun:*\n${dataLines}\n` +
+      (notes ? `━━━━━━━━━━━━━━━━━\n📝 Catatan: ${notes}\n` : "") +
+      `━━━━━━━━━━━━━━━━━\n` +
+      `Mohon konfirmasi total & info pembayaran ya kak 🙏`;
+
+    const waUrl = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, "_blank");
   };
 
   return (
@@ -119,7 +199,7 @@ export default function GameDetailPage() {
             gap: 20,
             alignItems: "center",
             padding: 24,
-            background: "rgba(9,20,55,.92)",
+            background: "rgba(30,42,98,.82)",
             border: "1.5px solid rgba(123,195,255,.3)",
             borderRadius: 20,
             marginBottom: 28,
@@ -189,7 +269,7 @@ export default function GameDetailPage() {
               <div
                 style={{
                   padding: 22,
-                  background: "rgba(9,20,55,.92)",
+                  background: "rgba(30,42,98,.82)",
                   border: "1.5px solid rgba(123,195,255,.3)",
                   borderRadius: 16,
                   marginBottom: 20,
@@ -217,7 +297,7 @@ export default function GameDetailPage() {
                           width: "100%",
                           padding: "12px 14px",
                           borderRadius: 10,
-                          background: "rgba(5,12,36,.9)",
+                          background: "rgba(22,32,82,.8)",
                           border: "1.5px solid rgba(123,195,255,.3)",
                           color: "#fff",
                           fontFamily: "inherit",
@@ -236,7 +316,7 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                background: "rgba(9,20,55,.92)",
+                background: "rgba(30,42,98,.82)",
                 border: "1.5px solid rgba(123,195,255,.3)",
                 borderRadius: 16,
                 marginBottom: 20,
@@ -267,7 +347,7 @@ export default function GameDetailPage() {
                         padding: 14,
                         borderRadius: 12,
                         border: selected?.id === p.id ? "2px solid #7bc3ff" : "1.5px solid rgba(123,195,255,.25)",
-                        background: selected?.id === p.id ? "rgba(34,114,220,.55)" : "rgba(5,12,36,.88)",
+                        background: selected?.id === p.id ? "rgba(34,114,220,.55)" : "rgba(22,32,82,.78)",
                         color: "#fff",
                         cursor: "pointer",
                         fontFamily: "inherit",
@@ -308,7 +388,7 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                background: "rgba(9,20,55,.92)",
+                background: "rgba(30,42,98,.82)",
                 border: "1.5px solid rgba(123,195,255,.3)",
                 borderRadius: 16,
                 color: "#fff",
@@ -327,7 +407,7 @@ export default function GameDetailPage() {
                       padding: "12px 14px",
                       borderRadius: 10,
                       border: payment === pm ? "2px solid #7bc3ff" : "1.5px solid rgba(123,195,255,.25)",
-                      background: payment === pm ? "rgba(34,114,220,.55)" : "rgba(5,12,36,.88)",
+                      background: payment === pm ? "rgba(34,114,220,.55)" : "rgba(22,32,82,.78)",
                       color: "#fff",
                       fontFamily: "inherit",
                       fontWeight: 800,
@@ -346,7 +426,7 @@ export default function GameDetailPage() {
               style={{
                 padding: 22,
                 marginTop: 20,
-                background: "rgba(9,20,55,.92)",
+                background: "rgba(30,42,98,.82)",
                 border: "1.5px solid rgba(236,72,153,.35)",
                 borderRadius: 16,
                 color: "#fff",
@@ -368,7 +448,7 @@ export default function GameDetailPage() {
                   width: "100%",
                   padding: "12px 14px",
                   borderRadius: 10,
-                  background: "rgba(5,12,36,.9)",
+                  background: "rgba(22,32,82,.8)",
                   border: "1.5px solid rgba(236,72,153,.4)",
                   color: "#fff",
                   fontFamily: "inherit",
@@ -379,6 +459,148 @@ export default function GameDetailPage() {
                 }}
               />
             </div>
+
+            {/* Voucher Code */}
+            <div
+              style={{
+                padding: 22,
+                marginTop: 20,
+                background: "rgba(30,42,98,.82)",
+                border: "1.5px solid rgba(168,85,247,.35)",
+                borderRadius: 16,
+                color: "#fff",
+                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+              }}
+            >
+              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
+                🎟️ Kode Voucher <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
+              </h3>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  placeholder="Masukkan kode voucher"
+                  value={voucherCode}
+                  onChange={(e) => {
+                    setVoucherCode(e.target.value.toUpperCase());
+                    if (voucherApplied) setVoucherApplied(null);
+                  }}
+                  disabled={!!voucherApplied}
+                  style={{
+                    flex: 1,
+                    padding: "12px 14px",
+                    borderRadius: 10,
+                    background: "rgba(22,32,82,.8)",
+                    border: "1.5px solid rgba(168,85,247,.35)",
+                    color: "#fff",
+                    fontFamily: "inherit",
+                    fontSize: ".9rem",
+                    fontWeight: 700,
+                    outline: "none",
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                  }}
+                />
+                {voucherApplied ? (
+                  <button
+                    onClick={() => { setVoucherApplied(null); setVoucherCode(""); }}
+                    style={{
+                      padding: "0 18px",
+                      borderRadius: 10,
+                      border: 0,
+                      background: "#ef4444",
+                      color: "#fff",
+                      fontFamily: "inherit",
+                      fontWeight: 800,
+                      fontSize: ".85rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✕ Batal
+                  </button>
+                ) : (
+                  <button
+                    onClick={checkVoucher}
+                    disabled={voucherChecking || !voucherCode.trim()}
+                    style={{
+                      padding: "0 22px",
+                      borderRadius: 10,
+                      border: 0,
+                      background: voucherCode.trim()
+                        ? "linear-gradient(135deg,#a855f7,#ec4899)"
+                        : "rgba(255,255,255,.15)",
+                      color: "#fff",
+                      fontFamily: "inherit",
+                      fontWeight: 800,
+                      fontSize: ".9rem",
+                      cursor: voucherCode.trim() ? "pointer" : "not-allowed",
+                      opacity: voucherCode.trim() ? 1 : 0.5,
+                    }}
+                  >
+                    {voucherChecking ? "..." : "CEK"}
+                  </button>
+                )}
+              </div>
+              {voucherApplied && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    background: "rgba(16,185,129,.2)",
+                    border: "1.5px solid rgba(16,185,129,.4)",
+                    fontSize: ".78rem",
+                    color: "#6ee7b7",
+                    fontWeight: 700,
+                  }}
+                >
+                  ✅ {voucherApplied.message} — hemat {fmtIDR(discountAmount)}
+                </div>
+              )}
+            </div>
+
+            {/* Order Notes */}
+            <div
+              style={{
+                padding: 22,
+                marginTop: 20,
+                background: "rgba(30,42,98,.82)",
+                border: "1.5px solid rgba(123,195,255,.3)",
+                borderRadius: 16,
+                color: "#fff",
+                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+              }}
+            >
+              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
+                📝 Catatan Order <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
+              </h3>
+              <div style={{ fontSize: ".75rem", color: "rgba(255,255,255,.7)", marginBottom: 10, fontWeight: 600 }}>
+                Contoh: proses malam ya, hati2 jangan ganti password, dsb.
+              </div>
+              <textarea
+                placeholder="Tulis catatan untuk admin..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                maxLength={300}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  background: "rgba(22,32,82,.8)",
+                  border: "1.5px solid rgba(123,195,255,.3)",
+                  color: "#fff",
+                  fontFamily: "inherit",
+                  fontSize: ".88rem",
+                  fontWeight: 600,
+                  outline: "none",
+                  resize: "vertical",
+                  minHeight: 70,
+                }}
+              />
+              <div style={{ fontSize: ".68rem", color: "rgba(255,255,255,.5)", marginTop: 4, textAlign: "right" }}>
+                {notes.length}/300
+              </div>
+            </div>
           </div>
 
           {/* Summary: only appear after user picked payment + package + phone */}
@@ -386,7 +608,7 @@ export default function GameDetailPage() {
           <div
             style={{
               padding: 22,
-              background: "rgba(5,12,36,.96)",
+              background: "rgba(22,32,82,.88)",
               border: "1.5px solid rgba(123,195,255,.35)",
               borderRadius: 16,
               color: "#fff",
@@ -402,11 +624,14 @@ export default function GameDetailPage() {
               ["Paket", selected?.name || "—"],
               ["Payment", payment],
               ["Harga", selected ? fmtIDR(selected.price_idr) : "Rp 0"],
+              ...(voucherApplied
+                ? ([[`Voucher (${voucherApplied.code})`, `-${fmtIDR(discountAmount)}`]] as [string, string][])
+                : ([] as [string, string][])),
               ["Admin", "Rp 0"],
             ].map(([k, v]) => (
               <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "rgba(255,255,255,.85)" }}>
                 <span>{k}</span>
-                <span style={{ color: "#fff", fontWeight: 800 }}>{v}</span>
+                <span style={{ color: voucherApplied && k.startsWith("Voucher") ? "#10b981" : "#fff", fontWeight: 800 }}>{v}</span>
               </div>
             ))}
             <div
@@ -421,7 +646,7 @@ export default function GameDetailPage() {
               }}
             >
               <span>TOTAL</span>
-              <span style={{ color: "#7bc3ff", fontSize: "1.3rem" }}>{selected ? fmtIDR(selected.price_idr) : "Rp 0"}</span>
+              <span style={{ color: "#7bc3ff", fontSize: "1.3rem" }}>{fmtIDR(finalPrice)}</span>
             </div>
             <button
               onClick={handleCheckout}
@@ -446,22 +671,22 @@ export default function GameDetailPage() {
                 transition: ".2s",
               }}
             >
-              💳 Bayar Sekarang
+              💬 Beli Sekarang (Via WhatsApp)
             </button>
             <div
               style={{
                 marginTop: 12,
                 padding: "10px 12px",
                 borderRadius: 8,
-                background: "rgba(16,185,129,.14)",
-                border: "1.5px solid rgba(16,185,129,.3)",
-                fontSize: ".7rem",
-                color: "#6ee7b7",
+                background: "rgba(37,211,102,.14)",
+                border: "1.5px solid rgba(37,211,102,.35)",
+                fontSize: ".72rem",
+                color: "#86efac",
                 fontWeight: 600,
-                lineHeight: 1.4,
+                lineHeight: 1.45,
               }}
             >
-              🔒 Pembayaran aman & terenkripsi.
+              💡 Order dikirim ke admin via WhatsApp. Pilih metode pembayaran yg available: QRIS / Transfer Bank / E-Wallet.
             </div>
           </div>
           )}
