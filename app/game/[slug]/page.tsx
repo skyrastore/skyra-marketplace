@@ -18,6 +18,7 @@ export default function GameDetailPage() {
   const [selected, setSelected] = useState<Product | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [payment, setPayment] = useState("QRIS");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,6 +70,10 @@ export default function GameDetailPage() {
       alert("Pilih paket dulu");
       return;
     }
+    if (!phone || phone.length < 9) {
+      alert("Nomor WhatsApp wajib diisi (min 9 digit)");
+      return;
+    }
     for (const f of inputFields) {
       if (f.required && !formData[f.key]) {
         alert(`Isi field ${f.label}`);
@@ -80,7 +85,8 @@ export default function GameDetailPage() {
         `Game: ${game.name}\n` +
         `Paket: ${selected.name}\n` +
         `Harga: ${fmtIDR(selected.price_idr)}\n` +
-        `Payment: ${payment}\n\n` +
+        `Payment: ${payment}\n` +
+        `WhatsApp: ${phone}\n\n` +
         `Data:\n` +
         Object.entries(formData)
           .map(([k, v]) => `  ${k}: ${v}`)
@@ -334,10 +340,49 @@ export default function GameDetailPage() {
                 ))}
               </div>
             </div>
+
+            {/* Contact / Phone — GLOBAL (every order needs customer contact) */}
+            <div
+              style={{
+                padding: 22,
+                marginTop: 20,
+                background: "rgba(9,20,55,.92)",
+                border: "1.5px solid rgba(236,72,153,.35)",
+                borderRadius: 16,
+                color: "#fff",
+                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+              }}
+            >
+              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
+                📱 Nomor WhatsApp
+              </h3>
+              <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.75)", marginBottom: 12, fontWeight: 600 }}>
+                Wajib. Admin akan contact kamu via WA untuk konfirmasi order.
+              </div>
+              <input
+                type="tel"
+                placeholder="08123456789"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/[^0-9+]/g, ""))}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  borderRadius: 10,
+                  background: "rgba(5,12,36,.9)",
+                  border: "1.5px solid rgba(236,72,153,.4)",
+                  color: "#fff",
+                  fontFamily: "inherit",
+                  fontSize: ".95rem",
+                  fontWeight: 700,
+                  outline: "none",
+                  letterSpacing: ".5px",
+                }}
+              />
+            </div>
           </div>
 
-          {/* Summary: only appear after user picked payment + package */}
-          {selected && payment && (
+          {/* Summary: only appear after user picked payment + package + phone */}
+          {selected && payment && phone.length >= 9 && (
           <div
             style={{
               padding: 22,

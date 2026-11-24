@@ -258,7 +258,7 @@ export default function Home() {
             </button>
           )}
           {search && searchFocus && filteredGames.length > 0 && (
-            <div className="search-dropdown">
+            <div className="search-dropdown" onMouseDown={(e) => e.preventDefault()}>
               {filteredGames.slice(0, 8).map((g) => {
                 const inner = (
                   <>
@@ -304,7 +304,7 @@ export default function Home() {
             </div>
           )}
           {search && searchFocus && filteredGames.length === 0 && (
-            <div className="search-dropdown">
+            <div className="search-dropdown" onMouseDown={(e) => e.preventDefault()}>
               <div className="sd-empty">📭 Ga ada hasil untuk &quot;{search}&quot;</div>
             </div>
           )}
