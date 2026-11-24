@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase, fmtIDR, type Game, type Product } from "@/lib/supabase";
+import { CATEGORY_ICON_URLS } from "@/lib/categoryIcons";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const SNAP_JS_URL =
@@ -333,54 +334,29 @@ export default function GameDetailPage() {
                 {!game.image_url && game.icon_emoji}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                {/* Badges row ABOVE title */}
+                {/* Badges row ABOVE title — all unified blue */}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                  <span
-                    style={{
-                      padding: "4px 10px",
-                      background: "linear-gradient(135deg,rgba(245,158,11,.22),rgba(245,158,11,.12))",
-                      border: "1px solid rgba(245,158,11,.5)",
-                      borderRadius: 99,
-                      color: "#fbbf24",
-                      fontSize: ".68rem",
-                      fontWeight: 800,
-                      letterSpacing: ".02em",
-                    }}
-                  >
-                    ✓ Distributor Resmi
-                  </span>
-                  <span
-                    style={{
-                      padding: "4px 10px",
-                      background: isInstant
-                        ? "linear-gradient(135deg,rgba(16,185,129,.22),rgba(16,185,129,.12))"
-                        : "linear-gradient(135deg,rgba(168,85,247,.22),rgba(168,85,247,.12))",
-                      border: isInstant
-                        ? "1px solid rgba(16,185,129,.5)"
-                        : "1px solid rgba(168,85,247,.5)",
-                      borderRadius: 99,
-                      color: isInstant ? "#6ee7b7" : "#c4b5fd",
-                      fontSize: ".68rem",
-                      fontWeight: 800,
-                      letterSpacing: ".02em",
-                    }}
-                  >
-                    {isInstant ? "⚡ Isi Ulang Instan" : "⏱ Proses 0-120 menit"}
-                  </span>
-                  <span
-                    style={{
-                      padding: "4px 10px",
-                      background: "linear-gradient(135deg,rgba(123,195,255,.22),rgba(123,195,255,.12))",
-                      border: "1px solid rgba(123,195,255,.5)",
-                      borderRadius: 99,
-                      color: "#2272dc",
-                      fontSize: ".68rem",
-                      fontWeight: 800,
-                      letterSpacing: ".02em",
-                    }}
-                  >
-                    🔒 Pembayaran Aman
-                  </span>
+                  {[
+                    { icon: "✓", label: "Distributor Resmi" },
+                    { icon: isInstant ? "⚡" : "⏱", label: isInstant ? "Isi Ulang Instan" : "Proses 0-120 menit" },
+                    { icon: "🔒", label: "Pembayaran Aman" },
+                  ].map((b, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        padding: "4px 10px",
+                        background: "linear-gradient(135deg,rgba(123,195,255,.22),rgba(123,195,255,.12))",
+                        border: "1px solid rgba(123,195,255,.5)",
+                        borderRadius: 99,
+                        color: "#2272dc",
+                        fontSize: ".68rem",
+                        fontWeight: 800,
+                        letterSpacing: ".02em",
+                      }}
+                    >
+                      {b.icon} {b.label}
+                    </span>
+                  ))}
                 </div>
                 <h1
                   style={{
@@ -514,6 +490,7 @@ export default function GameDetailPage() {
                     >
                       {catList.map((c) => {
                         const on = c.key === activeCat;
+                        const imgUrl = CATEGORY_ICON_URLS[c.key];
                         return (
                           <button
                             key={c.key}
@@ -536,7 +513,11 @@ export default function GameDetailPage() {
                               gap: 6,
                             }}
                           >
-                            <span>{c.icon}</span>
+                            {imgUrl ? (
+                              <img src={imgUrl} alt="" style={{ width: 20, height: 20, objectFit: "contain", borderRadius: 4 }} />
+                            ) : (
+                              <span>{c.icon}</span>
+                            )}
                             <span>{c.label}</span>
                             <span style={{ opacity: .5, fontSize: ".7rem" }}>({c.count})</span>
                           </button>
@@ -560,6 +541,7 @@ export default function GameDetailPage() {
                       {filtered.map((p) => {
                         const isSelected = selected?.id === p.id;
                         const cat = categorizeProduct(p.name);
+                        const itemImg = CATEGORY_ICON_URLS[cat.key];
                         return (
                           <button
                             key={p.id}
@@ -611,9 +593,14 @@ export default function GameDetailPage() {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 fontSize: "1.3rem",
+                                overflow: "hidden",
                               }}
                             >
-                              {cat.icon}
+                              {itemImg ? (
+                                <img src={itemImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              ) : (
+                                cat.icon
+                              )}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div
