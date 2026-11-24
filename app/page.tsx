@@ -88,20 +88,31 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [cat, setCat] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
+  const [searchFocus, setSearchFocus] = useState(false);
+  const [lang, setLang] = useState<"id" | "en">("id");
   const [promos, setPromos] = useState<Promo[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Hide splash after animation + track returning visitor
+  // Hide splash after animation + track returning visitor + restore lang
   useEffect(() => {
     if (typeof window !== "undefined") {
       const visited = sessionStorage.getItem("skyra_visited");
       if (visited) setIsReturning(true);
       sessionStorage.setItem("skyra_visited", "1");
+      const savedLang = localStorage.getItem("skyra_lang");
+      if (savedLang === "en" || savedLang === "id") setLang(savedLang);
     }
     const t = setTimeout(() => setSplashHide(true), 3200);
     return () => clearTimeout(t);
   }, []);
+
+  // Persist lang choice
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("skyra_lang", lang);
+    }
+  }, [lang]);
 
   // Fetch promos + games
   useEffect(() => {
@@ -197,12 +208,15 @@ export default function Home() {
 
       {/* ═══════════ TOP STRIP ═══════════ */}
       <div className="top-strip">
-        <div>⚡ INSTANT TOP UP · AMAN · TERPERCAYA</div>
+        <div className="top-menu">
+          <Link href="/saldo">💰 Cek Saldo</Link>
+          <Link href="/">🏠 Home</Link>
+          <Link href="/lacak">📦 Lacak Pesanan</Link>
+        </div>
         <div className="right">
-          🇮🇩 Indonesia
           <div className="lang-sw">
-            <button className="on">ID</button>
-            <button>EN</button>
+            <button className={lang === "id" ? "on" : ""} onClick={() => setLang("id")}>ID</button>
+            <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
           </div>
         </div>
       </div>
@@ -214,50 +228,88 @@ export default function Home() {
             <img src={LOGO_URL} alt="Skyra" />
             <span className="brand">SKYRA STORE</span>
           </Link>
-          <div className="nav-menu-main">
-            <Link href="/">Game</Link>
-            <Link href="/">Promo</Link>
-            <Link href="/">Lacak</Link>
-            <Link href="/">Bantuan</Link>
-          </div>
-          <div className="nav-search">
-            <input
-              placeholder="Cari game atau voucher..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") setSearch("");
-              }}
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                aria-label="Clear search"
-                style={{
-                  position: "absolute",
-                  right: 8,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  width: 26,
-                  height: 26,
-                  borderRadius: "50%",
-                  border: 0,
-                  background: "rgba(255,255,255,.2)",
-                  color: "#fff",
-                  cursor: "pointer",
-                  fontSize: ".9rem",
-                  lineHeight: 1,
-                }}
-              >
-                ×
-              </button>
-            )}
-          </div>
-          <Link href="/login" className="nav-cta">
+          <Link href="/login" className="nav-cta" style={{ marginLeft: "auto" }}>
             MASUK
           </Link>
         </div>
       </nav>
+
+      {/* ═══════════ SEARCH BAR (full-width below nav) ═══════════ */}
+      <div className="search-bar-wrap">
+        <div className="search-bar">
+          <span className="search-icon">🔍</span>
+          <input
+            placeholder="Cari game, voucher, atau jasa..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onFocus={() => setSearchFocus(true)}
+            onBlur={() => setTimeout(() => setSearchFocus(false), 200)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setSearch("");
+            }}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              aria-label="Clear"
+              className="search-clear"
+            >
+              ×
+            </button>
+          )}
+          {search && searchFocus && filteredGames.length > 0 && (
+            <div className="search-dropdown">
+              {filteredGames.slice(0, 8).map((g) => {
+                const inner = (
+                  <>
+                    <div
+                      className="sd-thumb"
+                      style={g.image_url ? { backgroundImage: `url(${g.image_url})` } : {}}
+                    >
+                      {!g.image_url && <span style={{ fontSize: "1.5rem" }}>{g.icon_emoji}</span>}
+                    </div>
+                    <div className="sd-info">
+                      <div className="sd-name">{g.name}</div>
+                      <div className="sd-tag">
+                        {g.external_url ? "↗ External" : "⚡ Instant"}
+                      </div>
+                    </div>
+                  </>
+                );
+                return g.external_url ? (
+                  <a
+                    key={g.id}
+                    href={g.external_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="sd-row"
+                    onClick={() => setSearch("")}
+                  >
+                    {inner}
+                  </a>
+                ) : (
+                  <Link
+                    key={g.id}
+                    href={`/game/${g.slug}`}
+                    className="sd-row"
+                    onClick={() => setSearch("")}
+                  >
+                    {inner}
+                  </Link>
+                );
+              })}
+              {filteredGames.length > 8 && (
+                <div className="sd-more">+{filteredGames.length - 8} hasil lain, scroll down ↓</div>
+              )}
+            </div>
+          )}
+          {search && searchFocus && filteredGames.length === 0 && (
+            <div className="search-dropdown">
+              <div className="sd-empty">📭 Ga ada hasil untuk &quot;{search}&quot;</div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ═══════════ HERO CAROUSEL ═══════════ */}
       <div className="hero-wrap">
