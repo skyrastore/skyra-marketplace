@@ -944,7 +944,7 @@ export default function GameDetailPage() {
               ].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "#334155" }}>
                   <span>{k}</span>
-                  <span style={{ color: voucherApplied && k.startsWith("Voucher") ? "#10b981" : "#fff", fontWeight: 800 }}>{v}</span>
+                  <span style={{ color: voucherApplied && k.startsWith("Voucher") ? "#10b981" : "#0f172a", fontWeight: 800 }}>{v}</span>
                 </div>
               ))}
               <div
