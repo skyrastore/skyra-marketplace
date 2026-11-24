@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase, fmtIDR, type Game, type Product } from "@/lib/supabase";
 import { CATEGORY_ICON_URLS } from "@/lib/categoryIcons";
+import { toast } from "sonner";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const SNAP_JS_URL =
@@ -98,25 +99,26 @@ export default function GameDetailPage() {
         .eq("is_active", true)
         .maybeSingle();
       if (!data) {
-        alert("Kode voucher tidak ditemukan atau sudah expired 😔");
+        toast.error("Kode voucher tidak ditemukan", { description: "Cek ulang code atau mungkin sudah expired." });
         return;
       }
       if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        alert("Voucher sudah expired");
+        toast.error("Voucher sudah expired");
         return;
       }
       if (data.max_uses && data.used_count >= data.max_uses) {
-        alert("Voucher sudah habis terpakai");
+        toast.error("Voucher sudah habis terpakai");
         return;
       }
       if (!selected) {
-        alert("Pilih paket dulu sebelum apply voucher");
+        toast.warning("Pilih paket dulu sebelum apply voucher");
         return;
       }
       if (selected.price_idr < data.min_purchase_idr) {
-        alert(`Min belanja untuk voucher ini: ${fmtIDR(data.min_purchase_idr)}`);
+        toast.error(`Min belanja untuk voucher ini`, { description: fmtIDR(data.min_purchase_idr) });
         return;
       }
+      toast.success(`Voucher ${data.code} diterapkan!`, { description: data.description });
       setVoucherApplied({
         code: data.code,
         discount_type: data.discount_type,
@@ -218,10 +220,11 @@ export default function GameDetailPage() {
   // ─── Primary checkout: Midtrans Snap ───
   const handlePayNow = async () => {
     const err = validateInputs();
-    if (err) { alert(err); return; }
+    if (err) { toast.warning(err); return; }
     if (paying) return;
     setPaying(true);
 
+    const loadingToast = toast.loading("Membuat order…");
     try {
       const res = await fetch("/api/orders/create", {
         method: "POST",
@@ -237,27 +240,31 @@ export default function GameDetailPage() {
       });
 
       const data = await res.json();
+      toast.dismiss(loadingToast);
+
       if (!res.ok || !data.snapToken) {
-        alert(`Gagal buat order: ${data.error || "unknown"}`);
+        toast.error("Gagal buat order", { description: data.error || "Coba lagi dalam beberapa saat." });
         return;
       }
 
       const snap = (window as SnapWindow).snap;
       if (!snap) {
-        alert("Payment module belum ter-load. Refresh halaman & coba lagi.");
+        toast.error("Payment belum siap", { description: "Refresh halaman & coba lagi." });
         return;
       }
 
       snap.pay(data.snapToken, {
         onSuccess: () => {
+          toast.success("Pembayaran berhasil!");
           window.location.href = `/order/${data.orderCode}?status=success`;
         },
         onPending: () => {
+          toast.info("Pembayaran pending — tunggu konfirmasi");
           window.location.href = `/order/${data.orderCode}?status=pending`;
         },
         onError: (e) => {
           console.error("Snap error:", e);
-          alert("Pembayaran gagal. Coba lagi atau pakai WhatsApp fallback.");
+          toast.error("Pembayaran gagal", { description: "Coba lagi atau pakai WhatsApp fallback." });
         },
         onClose: () => {
           // user closed popup — order tetap tersimpan sbg pending
@@ -265,7 +272,8 @@ export default function GameDetailPage() {
       });
     } catch (e) {
       console.error(e);
-      alert("Error jaringan. Coba lagi ya.");
+      toast.dismiss(loadingToast);
+      toast.error("Error jaringan", { description: "Cek koneksi & coba lagi." });
     } finally {
       setPaying(false);
     }
@@ -274,7 +282,7 @@ export default function GameDetailPage() {
   // ─── Fallback: WhatsApp manual ───
   const handleWhatsApp = () => {
     const err = validateInputs();
-    if (err) { alert(err); return; }
+    if (err) { toast.warning(err); return; }
     const url = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(buildWAMessage())}`;
     window.open(url, "_blank");
   };
