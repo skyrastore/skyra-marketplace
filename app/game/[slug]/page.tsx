@@ -15,6 +15,25 @@ const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "";
 
 type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean };
 
+// ─────────────────────────────────────────────
+// Product category classifier (name-based)
+// Groups denoms into user-friendly tabs so long lists aren't a wall of text.
+// ─────────────────────────────────────────────
+function categorizeProduct(name: string): { key: string; label: string; icon: string } {
+  const n = name.toLowerCase();
+  if (/first\s*(recharge|topup)|1st\s*topup|2x\s*diamond/.test(n)) return { key: "first", label: "First Recharge", icon: "🎁" };
+  if (/weekly.*(pass|diamond)|elite.*pack/.test(n)) return { key: "weekly", label: "Weekly Pass", icon: "📆" };
+  if (/monthly.*(pass|bundle|epic|ticket|card)/.test(n)) return { key: "monthly", label: "Monthly Pass", icon: "🗓️" };
+  if (/twilight/.test(n)) return { key: "twilight", label: "Twilight Pass", icon: "🌙" };
+  if (/starlight/.test(n)) return { key: "starlight", label: "Starlight", icon: "⭐" };
+  if (/battle.*pass|season.*pass|royale.*pass|elite.*pass/.test(n)) return { key: "season", label: "Season Pass", icon: "🏆" };
+  if (/membership|member\b|m-card/.test(n)) return { key: "member", label: "Membership", icon: "💳" };
+  if (/bundle|pack|gift|voucher.*(bundle|special)/.test(n)) return { key: "bundle", label: "Bundle", icon: "🎀" };
+  if (/sub\s*package|package|paket/.test(n)) return { key: "paket", label: "Paket", icon: "📦" };
+  // Default: regular topup currency (Diamonds, UC, VP, Gold, etc.)
+  return { key: "topup", label: "Top Up", icon: "💎" };
+}
+
 // Snap.js is loaded from CDN — minimal typing so TS doesn't complain
 type SnapWindow = Window & {
   snap?: {
@@ -50,6 +69,7 @@ export default function GameDetailPage() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const ADMIN_WA = "6285183346300";
 
@@ -291,7 +311,7 @@ export default function GameDetailPage() {
                 borderRadius: 20,
                 marginBottom: 28,
                 color: "#0f172a",
-                boxShadow: "0 8px 30px rgba(0,0,0,.4)",
+                boxShadow: "0 12px 36px rgba(15,23,42,.22)",
               }}
             >
               <div
@@ -410,7 +430,7 @@ export default function GameDetailPage() {
                   borderRadius: 16,
                   marginBottom: 20,
                   color: "#0f172a",
-                  boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+                  boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                 }}
               >
                 <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
@@ -448,77 +468,187 @@ export default function GameDetailPage() {
               </div>
             )}
 
-            {/* Step 2: Pick denom */}
-            <div
-              style={{
-                padding: 22,
-                background: "#ffffff",
-                border: "1px solid #e2e8ff",
-                borderRadius: 16,
-                marginBottom: 20,
-                color: "#0f172a",
-                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
-              }}
-            >
-              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
-                {inputFields.length > 0 ? "2." : "1."} Pilih Paket
-              </h3>
-              {products.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 20, opacity: 0.7, fontSize: ".85rem" }}>
-                  Belum ada paket tersedia
-                </div>
-              ) : (
+            {/* Step 2: Pick denom — with category filter */}
+            {(() => {
+              // Compute categories present in this game's products
+              const cats = new Map<string, { label: string; icon: string; count: number }>();
+              for (const p of products) {
+                const c = categorizeProduct(p.name);
+                const cur = cats.get(c.key);
+                if (cur) cur.count++;
+                else cats.set(c.key, { label: c.label, icon: c.icon, count: 1 });
+              }
+              const catList = Array.from(cats.entries()).map(([key, v]) => ({ key, ...v }));
+              const activeCat = selectedCategory ?? catList[0]?.key ?? null;
+              const filtered = activeCat
+                ? products.filter((p) => categorizeProduct(p.name).key === activeCat)
+                : products;
+
+              return (
                 <div
                   style={{
-                    display: "grid",
-                    gap: 10,
-                    gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))",
+                    padding: 22,
+                    background: "#ffffff",
+                    border: "1px solid #e2e8ff",
+                    borderRadius: 16,
+                    marginBottom: 20,
+                    color: "#0f172a",
+                    boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                   }}
                 >
-                  {products.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setSelected(p)}
+                  <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
+                    {inputFields.length > 0 ? "2." : "1."} Pilih Paket
+                  </h3>
+
+                  {/* Category filter pills — only show if 2+ categories */}
+                  {catList.length > 1 && (
+                    <div
                       style={{
-                        padding: 14,
-                        borderRadius: 12,
-                        border: selected?.id === p.id ? "2px solid #7bc3ff" : "1.5px solid rgba(123,195,255,.25)",
-                        background: selected?.id === p.id ? "#dbeafe" : "#f8fafc",
-                        color: "#0f172a",
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                        textAlign: "center",
-                        transition: ".2s",
-                        boxShadow: selected?.id === p.id ? "0 0 0 3px rgba(123,195,255,.2)" : "none",
-                        position: "relative",
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                        marginBottom: 16,
+                        paddingBottom: 14,
+                        borderBottom: "1px solid #f1f5f9",
                       }}
                     >
-                      {p.is_hot && (
-                        <span
-                          style={{
-                            position: "absolute",
-                            top: -6,
-                            right: -6,
-                            background: "linear-gradient(135deg,#ef4444,#f59e0b)",
-                            color: "#fff",
-                            fontSize: ".55rem",
-                            fontWeight: 900,
-                            padding: "3px 7px",
-                            borderRadius: 99,
-                          }}
-                        >
-                          🔥 HOT
-                        </span>
-                      )}
-                      <div style={{ fontFamily: "'Fredoka'", fontSize: "1rem", fontWeight: 700, marginBottom: 4 }}>
-                        {p.name}
-                      </div>
-                      <div style={{ fontSize: ".92rem", fontWeight: 800, color: "#2272dc" }}>{fmtIDR(p.price_idr)}</div>
-                    </button>
-                  ))}
+                      {catList.map((c) => {
+                        const on = c.key === activeCat;
+                        return (
+                          <button
+                            key={c.key}
+                            onClick={() => { setSelectedCategory(c.key); setSelected(null); }}
+                            style={{
+                              padding: "8px 14px",
+                              borderRadius: 99,
+                              border: on ? "1.5px solid #f59e0b" : "1px solid #e2e8ff",
+                              background: on
+                                ? "linear-gradient(135deg,rgba(245,158,11,.14),rgba(245,158,11,.06))"
+                                : "#fff",
+                              color: on ? "#b45309" : "#334155",
+                              fontFamily: "inherit",
+                              fontSize: ".82rem",
+                              fontWeight: 800,
+                              cursor: "pointer",
+                              transition: ".15s",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6,
+                            }}
+                          >
+                            <span>{c.icon}</span>
+                            <span>{c.label}</span>
+                            <span style={{ opacity: .5, fontSize: ".7rem" }}>({c.count})</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {filtered.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: 20, opacity: 0.7, fontSize: ".85rem" }}>
+                      Belum ada paket tersedia
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: 10,
+                        gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))",
+                      }}
+                    >
+                      {filtered.map((p) => {
+                        const isSelected = selected?.id === p.id;
+                        const cat = categorizeProduct(p.name);
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => setSelected(p)}
+                            style={{
+                              padding: "12px 14px",
+                              borderRadius: 12,
+                              border: isSelected ? "2px solid #f59e0b" : "1px solid #e2e8ff",
+                              background: isSelected ? "linear-gradient(135deg,#fff7ed,#fffbeb)" : "#f8fafc",
+                              color: "#0f172a",
+                              cursor: "pointer",
+                              fontFamily: "inherit",
+                              textAlign: "left",
+                              transition: ".15s",
+                              boxShadow: isSelected ? "0 0 0 3px rgba(245,158,11,.15)" : "none",
+                              position: "relative",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 12,
+                            }}
+                          >
+                            {p.is_hot && (
+                              <span
+                                style={{
+                                  position: "absolute",
+                                  top: -6,
+                                  right: -6,
+                                  background: "linear-gradient(135deg,#ef4444,#f59e0b)",
+                                  color: "#fff",
+                                  fontSize: ".55rem",
+                                  fontWeight: 900,
+                                  padding: "3px 7px",
+                                  borderRadius: 99,
+                                }}
+                              >
+                                🔥 HOT
+                              </span>
+                            )}
+                            <div
+                              style={{
+                                width: 42,
+                                height: 42,
+                                flexShrink: 0,
+                                borderRadius: 10,
+                                background: isSelected
+                                  ? "linear-gradient(135deg,#fbbf24,#f59e0b)"
+                                  : "linear-gradient(135deg,#e0eefe,#f0e7fd)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "1.3rem",
+                              }}
+                            >
+                              {cat.icon}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontSize: ".9rem",
+                                  fontWeight: 700,
+                                  color: "#0f172a",
+                                  lineHeight: 1.25,
+                                  marginBottom: 2,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {p.name}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: ".95rem",
+                                  fontWeight: 800,
+                                  color: "#ea580c",
+                                  letterSpacing: "-.01em",
+                                }}
+                              >
+                                {fmtIDR(p.price_idr)}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })()}
 
             {/* Contact / Phone */}
             <div
@@ -529,7 +659,7 @@ export default function GameDetailPage() {
                 border: "1.5px solid rgba(236,72,153,.35)",
                 borderRadius: 16,
                 color: "#0f172a",
-                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+                boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                 marginBottom: 20,
               }}
             >
@@ -568,7 +698,7 @@ export default function GameDetailPage() {
                 border: "1.5px solid rgba(168,85,247,.35)",
                 borderRadius: 16,
                 color: "#0f172a",
-                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+                boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                 marginBottom: 20,
               }}
             >
@@ -666,7 +796,7 @@ export default function GameDetailPage() {
                 border: "1px solid #e2e8ff",
                 borderRadius: 16,
                 color: "#0f172a",
-                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+                boxShadow: "0 10px 30px rgba(15,23,42,.18)",
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
@@ -711,7 +841,7 @@ export default function GameDetailPage() {
                 border: "1px solid #c7d4f0",
                 borderRadius: 16,
                 color: "#0f172a",
-                boxShadow: "0 8px 30px rgba(0,0,0,.45)",
+                boxShadow: "0 14px 40px rgba(15,23,42,.25)",
                 animation: "fadeInUp .35s ease",
               }}
             >

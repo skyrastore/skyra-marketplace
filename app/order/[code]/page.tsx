@@ -194,7 +194,7 @@ export default function OrderStatusPage() {
             border: "1px solid #e2e8ff",
             borderRadius: 16,
             color: "#0f172a",
-            boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+            boxShadow: "0 10px 30px rgba(15,23,42,.18)",
             marginBottom: 20,
           }}
         >
