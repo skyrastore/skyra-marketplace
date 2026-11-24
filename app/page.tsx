@@ -211,17 +211,13 @@ export default function Home() {
                         <img src={p.image_url} alt={p.title} />
                       </div>
                     )}
+                    {/* Text overlay: always visible when NO image, hover-only when image exists */}
                     <div className="slide-content">
                       <div className="slide-brand">SKYRA STORE</div>
                       <div className="slide-title" style={{ whiteSpace: "pre-line" }}>
                         {p.title}
                       </div>
                       {p.subtitle && <div className="slide-sub">{p.subtitle}</div>}
-                      {p.cta_text && (
-                        <span className="slide-cta">
-                          {p.cta_text} →
-                        </span>
-                      )}
                     </div>
                     {!p.image_url && <div className="slide-art">✨</div>}
                   </>
