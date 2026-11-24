@@ -248,9 +248,9 @@ export default function OrderStatusPage() {
               style={{
                 padding: "14px 18px",
                 borderRadius: 12,
-                background: "rgba(245,158,11,.14)",
-                border: "1.5px solid rgba(245,158,11,.4)",
-                color: "#fbbf24",
+                background: "rgba(123,195,255,.14)",
+                border: "1.5px solid rgba(123,195,255,.5)",
+                color: "#1e40af",
                 fontSize: ".85rem",
                 fontWeight: 600,
                 textAlign: "center",

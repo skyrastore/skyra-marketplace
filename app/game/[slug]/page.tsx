@@ -405,10 +405,10 @@ export default function GameDetailPage() {
           <div
             style={{
               padding: "14px 18px",
-              background: "rgba(245,158,11,.14)",
-              border: "1.5px solid rgba(245,158,11,.4)",
+              background: "rgba(123,195,255,.14)",
+              border: "1.5px solid rgba(123,195,255,.5)",
               borderRadius: 12,
-              color: "#0f172a",
+              color: "#1e40af",
               fontSize: ".82rem",
               fontWeight: 600,
               marginBottom: 24,
