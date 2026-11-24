@@ -7,8 +7,28 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase, fmtIDR, type Game, type Product } from "@/lib/supabase";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
+const SNAP_JS_URL =
+  (process.env.NEXT_PUBLIC_MIDTRANS_ENV || "sandbox") === "production"
+    ? "https://app.midtrans.com/snap/snap.js"
+    : "https://app.sandbox.midtrans.com/snap/snap.js";
+const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "";
 
 type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean };
+
+// Snap.js is loaded from CDN — minimal typing so TS doesn't complain
+type SnapWindow = Window & {
+  snap?: {
+    pay: (
+      token: string,
+      opts?: {
+        onSuccess?: (result: unknown) => void;
+        onPending?: (result: unknown) => void;
+        onError?: (err: unknown) => void;
+        onClose?: () => void;
+      }
+    ) => void;
+  };
+};
 
 export default function GameDetailPage() {
   const params = useParams<{ slug: string }>();
@@ -17,7 +37,6 @@ export default function GameDetailPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selected, setSelected] = useState<Product | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const [payment, setPayment] = useState("QRIS");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [voucherCode, setVoucherCode] = useState("");
@@ -30,8 +49,20 @@ export default function GameDetailPage() {
     message: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(false);
 
   const ADMIN_WA = "6285183346300";
+
+  // ─── Load Midtrans Snap.js ───
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (document.getElementById("midtrans-snap")) return;
+    const s = document.createElement("script");
+    s.id = "midtrans-snap";
+    s.src = SNAP_JS_URL;
+    s.setAttribute("data-client-key", MIDTRANS_CLIENT_KEY);
+    document.body.appendChild(s);
+  }, []);
 
   const checkVoucher = async () => {
     const code = voucherCode.trim().toUpperCase();
@@ -77,7 +108,6 @@ export default function GameDetailPage() {
     }
   };
 
-  // Compute discount amount
   const discountAmount = (() => {
     if (!voucherApplied || !selected) return 0;
     if (voucherApplied.discount_type === "percentage") {
@@ -97,7 +127,6 @@ export default function GameDetailPage() {
         .eq("is_active", true)
         .single();
       if (g) {
-        // If game has external_url, redirect there instead of rendering page
         if ((g as Game).external_url) {
           window.location.href = (g as Game).external_url!;
           return;
@@ -132,47 +161,101 @@ export default function GameDetailPage() {
     ? []
     : ((game as unknown as { input_fields?: InputField[] }).input_fields || []);
 
-  const handleCheckout = () => {
-    if (!selected) {
-      alert("Pilih paket dulu");
-      return;
-    }
-    if (!phone || phone.length < 9) {
-      alert("Nomor WhatsApp wajib diisi (min 9 digit)");
-      return;
-    }
-    for (const f of inputFields) {
-      if (f.required && !formData[f.key]) {
-        alert(`Isi field ${f.label}`);
-        return;
-      }
-    }
-
-    // Generate WhatsApp link
+  // ─── Build WA fallback message ───
+  const buildWAMessage = () => {
     const g = game!;
     const dataLines = inputFields
       .map((f) => `• ${f.label}: ${formData[f.key] || "-"}`)
       .join("\n");
-    const msg =
+    return (
       `🛒 *ORDER SKYRA STORE*\n` +
       `━━━━━━━━━━━━━━━━━\n` +
       `🎮 Game: *${g.name}*\n` +
-      `💎 Paket: *${selected.name}*\n` +
-      `💵 Harga: ${fmtIDR(selected.price_idr)}\n` +
-      (voucherApplied
-        ? `🎟️ Voucher: *${voucherApplied.code}* (-${fmtIDR(discountAmount)})\n`
-        : "") +
+      `💎 Paket: *${selected?.name || "-"}*\n` +
+      `💵 Harga: ${selected ? fmtIDR(selected.price_idr) : "-"}\n` +
+      (voucherApplied ? `🎟️ Voucher: *${voucherApplied.code}* (-${fmtIDR(discountAmount)})\n` : "") +
       `💰 *TOTAL: ${fmtIDR(finalPrice)}*\n` +
-      `💳 Payment: ${payment}\n` +
       `📱 WA: ${phone}\n` +
       `━━━━━━━━━━━━━━━━━\n` +
       `*Data Akun:*\n${dataLines}\n` +
       (notes ? `━━━━━━━━━━━━━━━━━\n📝 Catatan: ${notes}\n` : "") +
       `━━━━━━━━━━━━━━━━━\n` +
-      `Mohon konfirmasi total & info pembayaran ya kak 🙏`;
+      `Mohon konfirmasi total & info pembayaran ya kak 🙏`
+    );
+  };
 
-    const waUrl = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(msg)}`;
-    window.open(waUrl, "_blank");
+  // ─── Validate order inputs ───
+  const validateInputs = (): string | null => {
+    if (!selected) return "Pilih paket dulu";
+    if (!phone || phone.length < 9) return "Nomor WhatsApp wajib (min 9 digit)";
+    for (const f of inputFields) {
+      if (f.required && !formData[f.key]) return `Isi field ${f.label}`;
+    }
+    return null;
+  };
+
+  // ─── Primary checkout: Midtrans Snap ───
+  const handlePayNow = async () => {
+    const err = validateInputs();
+    if (err) { alert(err); return; }
+    if (paying) return;
+    setPaying(true);
+
+    try {
+      const res = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameSlug: game!.slug,
+          productId: selected!.id,
+          phone,
+          customData: formData,
+          notes: notes || undefined,
+          voucherCode: voucherApplied?.code || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.snapToken) {
+        alert(`Gagal buat order: ${data.error || "unknown"}`);
+        return;
+      }
+
+      const snap = (window as SnapWindow).snap;
+      if (!snap) {
+        alert("Payment module belum ter-load. Refresh halaman & coba lagi.");
+        return;
+      }
+
+      snap.pay(data.snapToken, {
+        onSuccess: () => {
+          window.location.href = `/order/${data.orderCode}?status=success`;
+        },
+        onPending: () => {
+          window.location.href = `/order/${data.orderCode}?status=pending`;
+        },
+        onError: (e) => {
+          console.error("Snap error:", e);
+          alert("Pembayaran gagal. Coba lagi atau pakai WhatsApp fallback.");
+        },
+        onClose: () => {
+          // user closed popup — order tetap tersimpan sbg pending
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      alert("Error jaringan. Coba lagi ya.");
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  // ─── Fallback: WhatsApp manual ───
+  const handleWhatsApp = () => {
+    const err = validateInputs();
+    if (err) { alert(err); return; }
+    const url = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(buildWAMessage())}`;
+    window.open(url, "_blank");
   };
 
   return (
@@ -384,60 +467,24 @@ export default function GameDetailPage() {
               )}
             </div>
 
-            {/* Step 3: Payment */}
+            {/* Contact / Phone */}
             <div
               style={{
                 padding: 22,
-                background: "rgba(30,42,98,.82)",
-                border: "1.5px solid rgba(123,195,255,.3)",
-                borderRadius: 16,
-                color: "#fff",
-                boxShadow: "0 6px 24px rgba(0,0,0,.35)",
-              }}
-            >
-              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
-                {inputFields.length > 0 ? "3." : "2."} Metode Pembayaran
-              </h3>
-              <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))" }}>
-                {["QRIS", "PayPal", "Wise"].map((pm) => (
-                  <button
-                    key={pm}
-                    onClick={() => setPayment(pm)}
-                    style={{
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      border: payment === pm ? "2px solid #7bc3ff" : "1.5px solid rgba(123,195,255,.25)",
-                      background: payment === pm ? "rgba(34,114,220,.55)" : "rgba(22,32,82,.78)",
-                      color: "#fff",
-                      fontFamily: "inherit",
-                      fontWeight: 800,
-                      fontSize: ".88rem",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {pm === "QRIS" ? "📱" : pm === "PayPal" ? "💳" : "🏦"} {pm}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Contact / Phone — GLOBAL (every order needs customer contact) */}
-            <div
-              style={{
-                padding: 22,
-                marginTop: 20,
+                marginTop: 0,
                 background: "rgba(30,42,98,.82)",
                 border: "1.5px solid rgba(236,72,153,.35)",
                 borderRadius: 16,
                 color: "#fff",
                 boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+                marginBottom: 20,
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
-                📱 Nomor WhatsApp
+                {inputFields.length > 0 ? "3." : "2."} 📱 Nomor WhatsApp
               </h3>
               <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.75)", marginBottom: 12, fontWeight: 600 }}>
-                Wajib. Admin akan contact kamu via WA untuk konfirmasi order.
+                Wajib. Buat notifikasi + kontak admin kalau ada pending.
               </div>
               <input
                 type="tel"
@@ -464,12 +511,12 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                marginTop: 20,
                 background: "rgba(30,42,98,.82)",
                 border: "1.5px solid rgba(168,85,247,.35)",
                 borderRadius: 16,
                 color: "#fff",
                 boxShadow: "0 6px 24px rgba(0,0,0,.35)",
+                marginBottom: 20,
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
@@ -562,7 +609,6 @@ export default function GameDetailPage() {
             <div
               style={{
                 padding: 22,
-                marginTop: 20,
                 background: "rgba(30,42,98,.82)",
                 border: "1.5px solid rgba(123,195,255,.3)",
                 borderRadius: 16,
@@ -603,92 +649,114 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* Summary: only appear after user picked payment + package + phone */}
-          {selected && payment && phone.length >= 9 && (
-          <div
-            style={{
-              padding: 22,
-              background: "rgba(22,32,82,.88)",
-              border: "1.5px solid rgba(123,195,255,.35)",
-              borderRadius: 16,
-              color: "#fff",
-              boxShadow: "0 8px 30px rgba(0,0,0,.45)",
-              animation: "fadeInUp .35s ease",
-            }}
-          >
-            <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
-              📋 Ringkasan Order
-            </h3>
-            {[
-              ["Game", game.name.split(":")[0]],
-              ["Paket", selected?.name || "—"],
-              ["Payment", payment],
-              ["Harga", selected ? fmtIDR(selected.price_idr) : "Rp 0"],
-              ...(voucherApplied
-                ? ([[`Voucher (${voucherApplied.code})`, `-${fmtIDR(discountAmount)}`]] as [string, string][])
-                : ([] as [string, string][])),
-              ["Admin", "Rp 0"],
-            ].map(([k, v]) => (
-              <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "rgba(255,255,255,.85)" }}>
-                <span>{k}</span>
-                <span style={{ color: voucherApplied && k.startsWith("Voucher") ? "#10b981" : "#fff", fontWeight: 800 }}>{v}</span>
-              </div>
-            ))}
+          {/* Summary: appear after selected + phone valid */}
+          {selected && phone.length >= 9 && (
             <div
               style={{
-                borderTop: "1.5px solid rgba(255,255,255,.2)",
-                marginTop: 8,
-                paddingTop: 14,
-                display: "flex",
-                justifyContent: "space-between",
-                fontWeight: 800,
-                fontSize: "1.1rem",
-              }}
-            >
-              <span>TOTAL</span>
-              <span style={{ color: "#7bc3ff", fontSize: "1.3rem" }}>{fmtIDR(finalPrice)}</span>
-            </div>
-            <button
-              onClick={handleCheckout}
-              disabled={!selected}
-              style={{
-                marginTop: 16,
-                width: "100%",
-                padding: 14,
-                border: 0,
-                borderRadius: 12,
-                background: selected
-                  ? "linear-gradient(135deg,#1452b4,#2272dc,#4a8dff)"
-                  : "rgba(255,255,255,.15)",
+                padding: 22,
+                background: "rgba(22,32,82,.88)",
+                border: "1.5px solid rgba(123,195,255,.35)",
+                borderRadius: 16,
                 color: "#fff",
-                fontFamily: "'Fredoka'",
-                fontSize: ".95rem",
-                fontWeight: 600,
-                cursor: selected ? "pointer" : "not-allowed",
-                letterSpacing: ".3px",
-                boxShadow: selected ? "0 6px 24px rgba(34,114,220,.5)" : "none",
-                opacity: selected ? 1 : 0.5,
-                transition: ".2s",
+                boxShadow: "0 8px 30px rgba(0,0,0,.45)",
+                animation: "fadeInUp .35s ease",
               }}
             >
-              💬 Beli Sekarang (Via WhatsApp)
-            </button>
-            <div
-              style={{
-                marginTop: 12,
-                padding: "10px 12px",
-                borderRadius: 8,
-                background: "rgba(37,211,102,.14)",
-                border: "1.5px solid rgba(37,211,102,.35)",
-                fontSize: ".72rem",
-                color: "#86efac",
-                fontWeight: 600,
-                lineHeight: 1.45,
-              }}
-            >
-              💡 Order dikirim ke admin via WhatsApp. Pilih metode pembayaran yg available: QRIS / Transfer Bank / E-Wallet.
+              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
+                📋 Ringkasan Order
+              </h3>
+              {[
+                ["Game", game.name.split(":")[0]],
+                ["Paket", selected?.name || "—"],
+                ["Harga", selected ? fmtIDR(selected.price_idr) : "Rp 0"],
+                ...(voucherApplied
+                  ? ([[`Voucher (${voucherApplied.code})`, `-${fmtIDR(discountAmount)}`]] as [string, string][])
+                  : ([] as [string, string][])),
+                ["Admin fee", "Rp 0"],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "rgba(255,255,255,.85)" }}>
+                  <span>{k}</span>
+                  <span style={{ color: voucherApplied && k.startsWith("Voucher") ? "#10b981" : "#fff", fontWeight: 800 }}>{v}</span>
+                </div>
+              ))}
+              <div
+                style={{
+                  borderTop: "1.5px solid rgba(255,255,255,.2)",
+                  marginTop: 8,
+                  paddingTop: 14,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontWeight: 800,
+                  fontSize: "1.1rem",
+                }}
+              >
+                <span>TOTAL</span>
+                <span style={{ color: "#7bc3ff", fontSize: "1.3rem" }}>{fmtIDR(finalPrice)}</span>
+              </div>
+
+              {/* Primary: Midtrans Snap */}
+              <button
+                onClick={handlePayNow}
+                disabled={paying || !selected}
+                style={{
+                  marginTop: 16,
+                  width: "100%",
+                  padding: 14,
+                  border: 0,
+                  borderRadius: 12,
+                  background: paying
+                    ? "rgba(255,255,255,.15)"
+                    : "linear-gradient(135deg,#1452b4,#2272dc,#4a8dff)",
+                  color: "#fff",
+                  fontFamily: "'Fredoka'",
+                  fontSize: ".98rem",
+                  fontWeight: 600,
+                  cursor: paying ? "wait" : "pointer",
+                  letterSpacing: ".3px",
+                  boxShadow: paying ? "none" : "0 6px 24px rgba(34,114,220,.5)",
+                  transition: ".2s",
+                }}
+              >
+                {paying ? "⏳ Memproses…" : "💳 Bayar Sekarang"}
+              </button>
+
+              {/* Secondary: WA fallback */}
+              <button
+                onClick={handleWhatsApp}
+                style={{
+                  marginTop: 10,
+                  width: "100%",
+                  padding: 11,
+                  border: "1.5px solid rgba(37,211,102,.5)",
+                  borderRadius: 12,
+                  background: "rgba(37,211,102,.1)",
+                  color: "#86efac",
+                  fontFamily: "'Fredoka'",
+                  fontSize: ".88rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: ".2s",
+                }}
+              >
+                💬 Atau pesan via WhatsApp
+              </button>
+
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  background: "rgba(123,195,255,.12)",
+                  border: "1.5px solid rgba(123,195,255,.3)",
+                  fontSize: ".72rem",
+                  color: "rgba(255,255,255,.8)",
+                  fontWeight: 600,
+                  lineHeight: 1.45,
+                }}
+              >
+                💡 Klik <b>Bayar Sekarang</b> → pilih QRIS / E-Wallet / Bank Transfer / CC di popup. Otomatis diproses setelah bayar.
+              </div>
             </div>
-          </div>
           )}
         </div>
       </div>
