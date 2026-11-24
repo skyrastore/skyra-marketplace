@@ -5,28 +5,49 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{min-height:100vh;overflow-x:hidden;font-family:'Inter',system-ui,-apple-system,sans-serif;color:#fff;background:#3a8ee8;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:'cv11','ss01','ss03'}
 
+/* ═══════════ shadcn/ui CSS variables (HSL) ═══════════ */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 214 73% 50%;        /* #2272dc */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 326 78% 60%;         /* pink */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 50% 94%;
+    --input: 220 50% 94%;
+    --ring: 214 73% 50%;
+    --radius: 0.75rem;
+  }
+}
+
+/* ═══════════ Legacy Skyra brand vars (used by existing inline styles) ═══════════ */
 :root{
-  /* Brand */
-  --primary:#2272dc;
-  --primary-dark:#1452b4;
-  --primary-light:#7bc3ff;
-  --pink:#ec4899;
-  --purple:#a855f7;
-  /* Soft */
+  --brand-primary:#2272dc;
+  --brand-primary-dark:#1452b4;
+  --brand-primary-light:#7bc3ff;
+  --brand-pink:#ec4899;
+  --brand-purple:#a855f7;
   --pink-soft:#fde7f3;
   --blue-soft:#e0eefe;
   --purple-soft:#f0e7fd;
-  /* Text */
   --text:#0f172a;
   --text-2:#334155;
   --text-dim:#64748b;
   --text-mute:#94a3b8;
-  /* Surface */
-  --card:#ffffff;
+  --card-color:#ffffff;
   --card-2:#fafbff;
-  --border:#e2e8ff;
   --border-strong:#c7d4f0;
-  /* Status */
   --success:#10b981;
   --warn:#f59e0b;
   --danger:#ef4444;
