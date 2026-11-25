@@ -1,12 +1,16 @@
 // ═══════════════════════════════════════════════════════════
 // POST /api/orders/create
-// Body: { gameSlug, productId, phone, customData, notes?, voucherCode? }
-// Response: { orderCode, snapToken, totalIdr }
+// Body: { gameSlug, productId, phone?, email?, customData, notes?,
+//         voucherCode?, qty?, useWallet? }
+// Response (midtrans): { orderCode, snapToken, totalIdr, voucherDiscount }
+// Response (wallet):   { orderCode, totalIdr, voucherDiscount, paid: true, newBalance }
 // ═══════════════════════════════════════════════════════════
 
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createSnapTransaction } from "@/lib/midtrans";
+import { env } from "@/lib/env";
 
 export const runtime = "edge";
 
@@ -19,23 +23,44 @@ type CreateOrderBody = {
   notes?: string;
   voucherCode?: string;
   qty?: number;
+  useWallet?: boolean;
 };
 
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as CreateOrderBody;
 
-    // ─── Validate required fields ───
     if (!body.gameSlug || !body.productId) {
-      return NextResponse.json(
-        { error: "gameSlug & productId wajib diisi" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "gameSlug & productId wajib diisi" }, { status: 400 });
     }
 
-    // Need phone OR email
+    // ─── Resolve auth user (optional — guest checkout stays supported) ───
+    const auth = req.headers.get("authorization") ?? "";
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+    if (token) {
+      const userClient = createClient(env("NEXT_PUBLIC_SUPABASE_URL")!, env("NEXT_PUBLIC_SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: u } = await userClient.auth.getUser();
+      if (u?.user) {
+        userId = u.user.id;
+        userEmail = u.user.email ?? null;
+      }
+    }
+
+    // Wallet pay requires auth
+    if (body.useWallet && !userId) {
+      return NextResponse.json({ error: "Login dulu untuk bayar pakai Saldo" }, { status: 401 });
+    }
+
+    // ─── Contact validation ───
+    // If paying with wallet AND signed in, we can lean on the user's email so
+    // the phone/email requirement doesn't double-up as a guest-checkout gate.
     const rawPhone = (body.phone || "").trim();
-    const rawEmail = (body.email || "").trim();
+    const rawEmail = (body.email || userEmail || "").trim();
     const cleanPhone = rawPhone ? rawPhone.replace(/[^\d+]/g, "") : "";
     const cleanEmail = rawEmail.toLowerCase();
 
@@ -43,10 +68,7 @@ export async function POST(req: Request) {
     const emailValid = cleanEmail && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cleanEmail);
 
     if (!phoneValid && !emailValid) {
-      return NextResponse.json(
-        { error: "Isi nomor WhatsApp (min 8 digit) atau Email yang valid" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Isi nomor WhatsApp (min 8 digit) atau Email yang valid" }, { status: 400 });
     }
 
     // ─── Fetch game + product ───
@@ -70,11 +92,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Produk tidak tersedia" }, { status: 404 });
     }
 
-    // Note: entitas_id ga perlu dipopulate di sini — UniPlay rotates per call,
-    // fulfill.js akan resolve fresh entitas_id + denom_id dari API pake
-    // stable name-based supplier_sku (slug--slug).
+    // ─── Qty + subtotal ───
+    const qty = product.supplier === "manual"
+      ? Math.max(1, Math.min(100, Math.floor(Number(body.qty) || 1)))
+      : 1;
+    const subtotal = product.price_idr * qty;
 
-    // ─── Validate voucher (if provided) ───
+    // ─── Voucher (if provided) ───
+    // If logged in, require the voucher to be in the user's claimed pool (so
+    // manually-typed codes outside the pool can't be abused). Guest checkout
+    // still falls back to the global code check.
     let voucherDiscount = 0;
     let voucherCode: string | null = null;
     if (body.voucherCode) {
@@ -84,17 +111,28 @@ export async function POST(req: Request) {
         .select("*")
         .eq("code", code)
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
 
       if (voucher) {
         const now = new Date();
         const expired = voucher.expires_at && new Date(voucher.expires_at) < now;
         const maxed = voucher.max_uses && voucher.used_count >= voucher.max_uses;
-        const belowMin = voucher.min_purchase_idr && product.price_idr < voucher.min_purchase_idr;
+        const belowMin = voucher.min_purchase_idr && subtotal < voucher.min_purchase_idr;
 
-        if (!expired && !maxed && !belowMin) {
+        let claimedOK = true;
+        if (userId) {
+          const { data: claim } = await supabaseAdmin
+            .from("vouchers_claimed")
+            .select("voucher_code, used_at")
+            .eq("user_id", userId)
+            .eq("voucher_code", code)
+            .maybeSingle();
+          claimedOK = !!claim && !claim.used_at;
+        }
+
+        if (!expired && !maxed && !belowMin && claimedOK) {
           if (voucher.discount_type === "percentage") {
-            voucherDiscount = Math.floor((product.price_idr * voucher.discount_value) / 100);
+            voucherDiscount = Math.floor((subtotal * voucher.discount_value) / 100);
             if (voucher.max_discount_idr && voucherDiscount > voucher.max_discount_idr) {
               voucherDiscount = voucher.max_discount_idr;
             }
@@ -106,28 +144,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Qty: only manual products allow qty > 1 (UniPlay is per-denom)
-    const qty = product.supplier === "manual"
-      ? Math.max(1, Math.min(100, Math.floor(Number(body.qty) || 1)))
-      : 1;
-    const subtotal = product.price_idr * qty;
-
-    // Recompute voucher based on actual subtotal (qty × price) since frontend qty is untrusted
-    if (body.voucherCode && voucherCode) {
-      const { data: v } = await supabaseAdmin
-        .from("vouchers")
-        .select("discount_type,discount_value,max_discount_idr")
-        .eq("code", voucherCode)
-        .single();
-      if (v) {
-        if (v.discount_type === "percentage") {
-          voucherDiscount = Math.floor((subtotal * v.discount_value) / 100);
-          if (v.max_discount_idr && voucherDiscount > v.max_discount_idr) voucherDiscount = v.max_discount_idr;
-        } else {
-          voucherDiscount = v.discount_value;
-        }
-      }
-    }
     const total = Math.max(0, subtotal - voucherDiscount);
 
     // ─── Generate order_code ───
@@ -137,30 +153,10 @@ export async function POST(req: Request) {
     }
     const orderCode = codeData as string;
 
-    // ─── Create Midtrans Snap token ───
-    let snapToken: string | null = null;
-    try {
-      const qtySuffix = qty > 1 ? ` ×${qty}` : "";
-      const snap = await createSnapTransaction({
-        orderCode,
-        grossAmount: total,
-        itemName: `${game.name} — ${product.name}${qtySuffix}`,
-        itemId: product.id,
-        customerPhone: phoneValid ? cleanPhone : "0000000000",
-        customerEmail: emailValid ? cleanEmail : undefined,
-      });
-      snapToken = snap.token;
-    } catch (err) {
-      console.error("Midtrans snap error:", err);
-      return NextResponse.json(
-        { error: "Gagal membuat sesi pembayaran. Coba beberapa saat lagi." },
-        { status: 502 }
-      );
-    }
-
-    // ─── Insert order ───
-    const { error: insertErr } = await supabaseAdmin.from("orders").insert({
+    // Common order payload
+    const baseOrder = {
       order_code: orderCode,
+      user_id: userId,
       game_id: game.id,
       game_slug: game.slug,
       game_name: game.name,
@@ -178,24 +174,101 @@ export async function POST(req: Request) {
       subtotal_idr: subtotal,
       total_idr: total,
       qty,
-      payment_method: "midtrans",
-      midtrans_snap_token: snapToken,
-      status: "pending_payment",
-    });
+    };
+
+    // ═══ BRANCH A: Pay with Wallet ═══
+    if (body.useWallet) {
+      // Insert order first (status=paid), then deduct via RPC. If RPC fails
+      // we roll back the order row to keep ledger + orders consistent.
+      const { data: orderRow, error: insErr } = await supabaseAdmin
+        .from("orders")
+        .insert({ ...baseOrder, payment_method: "wallet", status: "paid", paid_at: new Date().toISOString() })
+        .select("id")
+        .single();
+
+      if (insErr || !orderRow) {
+        console.error("Insert wallet-order error:", insErr);
+        return NextResponse.json({ error: "Gagal menyimpan order" }, { status: 500 });
+      }
+
+      const { data: txRes, error: rpcErr } = await supabaseAdmin.rpc("apply_wallet_tx", {
+        p_user_id: userId!,
+        p_tx_type: "spend",
+        p_amount_idr: -total,
+        p_description: `Order ${orderCode} — ${game.name} · ${product.name}`,
+        p_related_order_id: orderRow.id,
+        p_midtrans_order_id: null,
+      });
+
+      if (rpcErr) {
+        // Rollback order
+        await supabaseAdmin.from("orders").delete().eq("id", orderRow.id);
+        const msg = rpcErr.message.includes("Insufficient") ? "Saldo kamu kurang untuk order ini" : rpcErr.message;
+        return NextResponse.json({ error: msg }, { status: 400 });
+      }
+
+      // Mark voucher as used
+      if (voucherCode && userId) {
+        await markVoucherUsed(userId, voucherCode, orderRow.id);
+      }
+
+      const newBalance = (txRes as { balance?: number } | null)?.balance ?? null;
+      return NextResponse.json({ orderCode, totalIdr: total, voucherDiscount, paid: true, newBalance });
+    }
+
+    // ═══ BRANCH B: Midtrans Snap ═══
+    let snapToken: string | null = null;
+    try {
+      const qtySuffix = qty > 1 ? ` ×${qty}` : "";
+      const snap = await createSnapTransaction({
+        orderCode,
+        grossAmount: total,
+        itemName: `${game.name} — ${product.name}${qtySuffix}`,
+        itemId: product.id,
+        customerPhone: phoneValid ? cleanPhone : "0000000000",
+        customerEmail: emailValid ? cleanEmail : undefined,
+      });
+      snapToken = snap.token;
+    } catch (err) {
+      console.error("Midtrans snap error:", err);
+      return NextResponse.json({ error: "Gagal membuat sesi pembayaran. Coba beberapa saat lagi." }, { status: 502 });
+    }
+
+    const { data: orderRow, error: insertErr } = await supabaseAdmin
+      .from("orders")
+      .insert({ ...baseOrder, payment_method: "midtrans", midtrans_snap_token: snapToken, status: "pending_payment" })
+      .select("id")
+      .single();
 
     if (insertErr) {
       console.error("Insert order error:", insertErr);
       return NextResponse.json({ error: "Gagal menyimpan order" }, { status: 500 });
     }
 
-    return NextResponse.json({
-      orderCode,
-      snapToken,
-      totalIdr: total,
-      voucherDiscount,
-    });
+    // Reserve the voucher now (set used_at) so it can't be picked twice in
+    // overlapping Snap sessions. The notification handler bumps used_count.
+    if (voucherCode && userId) {
+      await markVoucherUsed(userId, voucherCode, orderRow.id);
+    }
+
+    return NextResponse.json({ orderCode, snapToken, totalIdr: total, voucherDiscount });
   } catch (err) {
     console.error("Order create error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
+}
+
+async function markVoucherUsed(userId: string, code: string, orderId: string) {
+  await supabaseAdmin
+    .from("vouchers_claimed")
+    .update({ used_at: new Date().toISOString(), used_order_id: orderId })
+    .eq("user_id", userId)
+    .eq("voucher_code", code)
+    .is("used_at", null);
+  // Bump voucher usage count (best-effort; a stat row inconsistency isn't a hard
+  // failure — the per-user used_at above already prevents re-use.)
+  await supabaseAdmin.rpc("increment_voucher_usage", { p_code: code }).then(
+    () => {},
+    () => { /* RPC optional; log silent */ }
+  );
 }
