@@ -58,6 +58,15 @@ export function VoucherCard({
 
   const dim = status === "used" || status === "expired";
 
+  // Accent gradient per status — adds some variety instead of monochrome blue
+  const accentGrad = status === "available"
+    ? "linear-gradient(135deg,#a855f7,#2970ff)"
+    : status === "claimed"
+    ? "linear-gradient(135deg,#2970ff,#1a52b8)"
+    : status === "used"
+    ? "linear-gradient(135deg,#94a3b8,#64748b)"
+    : "linear-gradient(135deg,#f87171,#ef4444)";
+
   return (
     <div
       style={{
@@ -65,29 +74,39 @@ export function VoucherCard({
         borderRadius: 16,
         border: "1px solid #e2e8ff",
         overflow: "hidden",
-        opacity: dim ? 0.7 : 1,
+        opacity: dim ? 0.75 : 1,
         transition: "all .2s",
+        boxShadow: "0 6px 18px rgba(15,23,42,.06)",
+        position: "relative",
       }}
     >
+      {/* Left accent stripe */}
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: accentGrad }} />
+
+      {/* Perforated edge for ticket feel */}
+      <div style={{ position: "absolute", left: -6, top: "50%", width: 12, height: 12, borderRadius: "50%", background: "#f8fafc", transform: "translateY(-50%)" }} />
+      <div style={{ position: "absolute", right: -6, top: "50%", width: 12, height: 12, borderRadius: "50%", background: "#f8fafc", transform: "translateY(-50%)" }} />
+
       <div
         style={{
           display: "flex",
           alignItems: "stretch",
-          padding: 14,
+          padding: "14px 16px",
           gap: 14,
           borderBottom: open ? "1px dashed #e2e8ff" : "none",
         }}
       >
         <div
           style={{
-            width: 60,
-            minWidth: 60,
-            borderRadius: 12,
-            background: "linear-gradient(135deg,#dbeafe,#bfdbfe)",
+            width: 64,
+            minWidth: 64,
+            borderRadius: 14,
+            background: accentGrad,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#2970ff",
+            color: "#fff",
+            boxShadow: "0 4px 12px rgba(41,112,255,.3)",
           }}
         >
           <Ticket size={28} />

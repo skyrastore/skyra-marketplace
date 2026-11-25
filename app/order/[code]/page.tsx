@@ -169,8 +169,15 @@ export default function OrderStatusPage() {
             boxShadow: `0 10px 40px ${status.color}30`,
           }}
         >
-          <div style={{ marginBottom: 8, lineHeight: 1, color: status.color }}>
-            <status.Icon size={64} strokeWidth={1.8} />
+          <div style={{ marginBottom: 12, display: "flex", justifyContent: "center", color: status.color }}>
+            <div style={{
+              width: 96, height: 96, borderRadius: "50%",
+              background: `${status.color}15`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              border: `3px solid ${status.color}30`,
+            }}>
+              <status.Icon size={48} strokeWidth={2} />
+            </div>
           </div>
           <h1
             style={{

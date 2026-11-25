@@ -1087,9 +1087,9 @@ export default function GameDetailPage() {
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#1a52b8", fontWeight: 800, fontSize: ".8rem" }}>
-                      <CreditCard size={14} /> QRIS / Bank / E-Wallet
+                      <CreditCard size={14} /> Pembayaran Otomatis
                     </div>
-                    <div style={{ fontSize: ".68rem", color: "#64748b", marginTop: 2, fontWeight: 600 }}>Bayar via Midtrans</div>
+                    <div style={{ fontSize: ".68rem", color: "#64748b", marginTop: 2, fontWeight: 600 }}>QRIS · Bank · E-Wallet · CC</div>
                   </button>
                   <button
                     type="button"

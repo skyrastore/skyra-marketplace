@@ -84,20 +84,57 @@ export default function KuponPage() {
   return (
     <>
       <SiteNav />
-      <main style={{ minHeight: "calc(100vh - 62px)", padding: "28px 16px 80px", background: "#f8fafc" }}>
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#2970ff,#1a52b8)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 20px rgba(41,112,255,.3)" }}>
-              <Ticket size={22} />
+      <main
+        style={{
+          minHeight: "calc(100vh - 62px)",
+          padding: "0 0 80px",
+          background: "linear-gradient(180deg,#eff6ff 0%,#f8fafc 180px,#f8fafc 100%)",
+          position: "relative",
+        }}
+      >
+        {/* Decorative blobs */}
+        <div style={{ position: "absolute", top: 20, left: "10%", width: 180, height: 180, borderRadius: "50%", background: "radial-gradient(circle,rgba(168,85,247,.18),transparent 70%)", filter: "blur(30px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 60, right: "8%", width: 220, height: 220, borderRadius: "50%", background: "radial-gradient(circle,rgba(41,112,255,.18),transparent 70%)", filter: "blur(30px)", pointerEvents: "none" }} />
+
+        <div style={{ maxWidth: 680, margin: "0 auto", padding: "32px 16px 0", position: "relative" }}>
+          {/* Hero card */}
+          <div
+            style={{
+              background: "linear-gradient(135deg,#1a52b8 0%,#2970ff 50%,#a855f7 100%)",
+              color: "#fff",
+              borderRadius: 20,
+              padding: "26px 22px",
+              marginBottom: 20,
+              boxShadow: "0 18px 50px rgba(41,112,255,.4)",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,.1)" }} />
+            <div style={{ position: "absolute", bottom: -40, left: -20, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 14, position: "relative" }}>
+              <div
+                style={{
+                  width: 54, height: 54, borderRadius: 14,
+                  background: "rgba(255,255,255,.2)",
+                  border: "1.5px solid rgba(255,255,255,.3)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <Ticket size={26} />
+              </div>
+              <div>
+                <h1 style={{ fontFamily: "'Fredoka'", fontSize: "1.5rem", fontWeight: 700, margin: 0, lineHeight: 1.1 }}>Kupon & Voucher</h1>
+                <p style={{ fontSize: ".82rem", opacity: .92, margin: "4px 0 0", fontWeight: 500 }}>
+                  Klaim, dan hemat saat checkout!
+                </p>
+              </div>
             </div>
-            <h1 style={{ fontFamily: "'Fredoka'", fontSize: "1.6rem", fontWeight: 700, color: "#0f172a", margin: 0 }}>Kupon & Voucher</h1>
           </div>
-          <p style={{ fontSize: ".88rem", color: "#64748b", marginBottom: 22, fontWeight: 500 }}>
-            Klaim voucher di sini, auto-tersedia di checkout saat kamu belanja.
-          </p>
 
           {/* Top tabs */}
-          <div style={{ display: "flex", gap: 4, background: "#eef2ff", padding: 4, borderRadius: 12, marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 4, background: "#fff", padding: 4, borderRadius: 12, marginBottom: 16, boxShadow: "0 4px 14px rgba(15,23,42,.08)" }}>
             <TabBtn active={tab === "available"} onClick={() => setTab("available")}>Tersedia ({available.length})</TabBtn>
             <TabBtn active={tab === "mine"} onClick={() => setTab("mine")}>Milikku ({mine.active.length + mine.used.length + mine.expired.length})</TabBtn>
           </div>
@@ -195,8 +232,28 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div style={{ padding: "40px 20px", textAlign: "center", color: "#94a3b8", fontSize: ".9rem", fontWeight: 500, background: "#fff", borderRadius: 16, border: "1px dashed #e2e8ff" }}>
-      {text}
+    <div
+      style={{
+        padding: "50px 24px",
+        textAlign: "center",
+        background: "#fff",
+        borderRadius: 18,
+        border: "1.5px dashed #cbd5e1",
+        boxShadow: "0 4px 14px rgba(15,23,42,.05)",
+      }}
+    >
+      <div
+        style={{
+          width: 72, height: 72, margin: "0 auto 14px",
+          borderRadius: "50%",
+          background: "linear-gradient(135deg,#f1f5f9,#e2e8f0)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#94a3b8",
+        }}
+      >
+        <Ticket size={32} />
+      </div>
+      <div style={{ color: "#64748b", fontSize: ".92rem", fontWeight: 600, lineHeight: 1.5 }}>{text}</div>
     </div>
   );
 }
