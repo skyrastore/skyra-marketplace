@@ -401,11 +401,13 @@ body{
 .cat.on{background:linear-gradient(135deg,var(--brand-primary-dark),var(--brand-primary));color:#fff;box-shadow:0 6px 18px rgba(34,114,220,.35);border-color:var(--brand-primary-dark)}
 
 /* ═══════════ GAME GRID ═══════════ */
-.games-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;position:relative;z-index:1}
-@media(max-width:1100px){.games-grid{grid-template-columns:repeat(5,1fr)}}
-@media(max-width:900px){.games-grid{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:640px){.games-grid{grid-template-columns:repeat(3,1fr);gap:10px}}
-@media(max-width:420px){.games-grid{grid-template-columns:repeat(2,1fr)}}
+/* minmax(0, 1fr) biar columns tetap equal — '1fr' sendirian ngitung
+   min-content dari <img> intrinsic size, bikin kolom ga sama lebar. */
+.games-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;position:relative;z-index:1}
+@media(max-width:1100px){.games-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:900px){.games-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:640px){.games-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
+@media(max-width:420px){.games-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .gg-card{
   cursor:pointer;background:#ffffff;
@@ -444,7 +446,7 @@ body{
 /* ═══════════ SPECIAL OFFER + JOKI CARDS ═══════════ */
 .special-grid{
   display:grid;gap:16px;position:relative;z-index:1;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(4,minmax(0,1fr));
 }
 @media(max-width:900px){.special-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:640px){.special-grid{grid-template-columns:repeat(2,1fr);gap:12px}}
