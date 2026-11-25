@@ -19,6 +19,7 @@ export function SiteNav() {
     { href: "/lacak", label: t("nav.track") },
     ...(isAuthed
       ? [
+          { href: "/riwayat", label: "Riwayat Pesanan" },
           { href: "/kupon", label: t("nav.vouchers") },
           { href: "/saldo", label: t("nav.balance") },
         ]
