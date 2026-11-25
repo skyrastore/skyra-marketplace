@@ -193,6 +193,7 @@ const T: Record<string, string> = {
   "pack.bundle": "Bundle",
   "pack.paket": "Paket",
   "pack.first": "First Recharge",
+  "pack.gamg": "GAMG",
 
   // ─── Footer ───
   "foot.desc": "Top-up game terpercaya untuk Sky: Children of the Light, Mobile Legends, Free Fire & lainnya. Hemat, instant, 24/7.",

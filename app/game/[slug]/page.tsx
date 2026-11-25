@@ -48,6 +48,8 @@ type InputField = { key: string; label: string; type: string; placeholder?: stri
 // Returns key + Icon only — label is resolved at render time via t("pack.<key>")
 function categorizeProduct(name: string): { key: string; Icon: LucideIcon } {
   const n = name.toLowerCase();
+  // Guard GAMG first — biar gak ketangkep "monthly" / "bundle" regex
+  if (/\bgamg\b/.test(n)) return { key: "gamg", Icon: Lock };
   if (/first\s*(recharge|topup)|1st\s*topup|2x\s*diamond/.test(n)) return { key: "first", Icon: Gift };
   if (/weekly.*(pass|diamond)|elite.*pack/.test(n)) return { key: "weekly", Icon: Calendar };
   if (/monthly.*(pass|bundle|epic|ticket|card)/.test(n)) return { key: "monthly", Icon: CalendarDays };
@@ -172,6 +174,24 @@ export default function GameDetailPage() {
       if (selected.price_idr < data.min_purchase_idr) {
         toast.error(t("toast.voucher_min_buy_t"), { description: fmtIDR(data.min_purchase_idr) });
         return;
+      }
+      // Logged-in: enforce claim + per-user usage so we don't apply something
+      // the backend will silently drop at checkout.
+      if (user) {
+        const { data: claim } = await supabase
+          .from("vouchers_claimed")
+          .select("used_at")
+          .eq("user_id", user.id)
+          .eq("voucher_code", data.code)
+          .maybeSingle();
+        if (!claim) {
+          toast.error("Voucher belum di-klaim", { description: "Klaim dulu di /kupon sebelum pakai" });
+          return;
+        }
+        if (claim.used_at) {
+          toast.error("Voucher sudah dipakai", { description: "Satu voucher cuma bisa dipakai 1x" });
+          return;
+        }
       }
       toast.success(`${t("toast.voucher_applied_t")} (${data.code})`, { description: data.description });
       setVoucherApplied({
