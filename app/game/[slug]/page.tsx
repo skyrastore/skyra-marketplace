@@ -11,6 +11,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ContactInput, type ContactValue, toPhoneString } from "@/components/contact-input";
+import { ReviewCard, StarRow, type ReviewData } from "@/components/review-card";
 import { DEFAULT_COUNTRY } from "@/lib/countryCodes";
 import { useAuth } from "@/components/auth-provider";
 import {
@@ -1209,7 +1210,45 @@ export default function GameDetailPage() {
           )}
         </div>
       </div>
+
+      {game && <ReviewsSection gameSlug={game.slug} />}
       <SiteFooter />
     </>
+  );
+}
+
+function ReviewsSection({ gameSlug }: { gameSlug: string }) {
+  const [data, setData] = useState<{ avg: number | null; count: number; reviews: ReviewData[] }>({ avg: null, count: 0, reviews: [] });
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch(`/api/reviews/game/${gameSlug}`).then((r) => r.json()).then((d) => {
+      setData(d);
+      setLoading(false);
+    });
+  }, [gameSlug]);
+  if (loading || data.count === 0) return null;
+  return (
+    <div className="game-detail-wrap" style={{ marginTop: 20 }}>
+      <div style={{
+        background: "#fff", borderRadius: 18, padding: 22,
+        border: "1px solid #e2e8ff", boxShadow: "0 10px 30px rgba(15,23,42,.18)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+          <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 700, fontSize: "1.2rem", color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+            <Star size={18} fill="#f59e0b" color="#f59e0b" /> Ulasan Customer
+          </h3>
+          {data.avg !== null && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "linear-gradient(135deg,#fef3c7,#fde68a)", padding: "8px 14px", borderRadius: 12 }}>
+              <span style={{ fontSize: "1.3rem", fontWeight: 900, color: "#92400e" }}>{data.avg}</span>
+              <StarRow value={data.avg} size={14} />
+              <span style={{ fontSize: ".78rem", color: "#92400e", fontWeight: 700 }}>({data.count} review)</span>
+            </div>
+          )}
+        </div>
+        <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))" }}>
+          {data.reviews.map((r, i) => <ReviewCard key={i} review={r} />)}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -12,6 +12,8 @@ import {
 import { useI18n } from "@/components/i18n-provider";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { ReviewSubmitForm } from "@/components/review-submit-form";
+import { ReviewCard, type ReviewData } from "@/components/review-card";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const ADMIN_WA = "6285183346300";
@@ -89,6 +91,8 @@ export default function OrderStatusPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [existingReview, setExistingReview] = useState<ReviewData | null>(null);
+  const [reviewChecked, setReviewChecked] = useState(false);
 
   // Fetch & auto-refresh
   useEffect(() => {
@@ -124,6 +128,16 @@ export default function OrderStatusPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.code]);
+
+  // Check if this order already has a review (only after it's done)
+  useEffect(() => {
+    if (!order || order.status !== "done" || reviewChecked) return;
+    (async () => {
+      const r = await fetch(`/api/reviews/order/${order.order_code}`).then((x) => x.json());
+      if (r.exists) setExistingReview(r);
+      setReviewChecked(true);
+    })();
+  }, [order, reviewChecked]);
 
   if (loading) {
     return <div style={{ textAlign: "center", padding: 80, color: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}><Clock size={18} /> {t("status.loading")}</div>;
@@ -250,6 +264,22 @@ export default function OrderStatusPage() {
             <span style={{ color: "#2272dc", fontSize: "1.2rem" }}>{fmtIDR(order!.total_idr)}</span>
           </div>
         </div>
+
+        {/* Review (only when done) */}
+        {order!.status === "done" && (
+          <div style={{ marginBottom: 14 }}>
+            {existingReview ? (
+              <>
+                <div style={{ fontSize: ".78rem", color: "#64748b", fontWeight: 700, marginBottom: 8, letterSpacing: ".04em" }}>
+                  REVIEW KAMU
+                </div>
+                <ReviewCard review={existingReview} />
+              </>
+            ) : reviewChecked ? (
+              <ReviewSubmitForm orderCode={order!.order_code} onSubmitted={() => setReviewChecked(false)} />
+            ) : null}
+          </div>
+        )}
 
         {/* Action buttons */}
         <div style={{ display: "grid", gap: 10 }}>
