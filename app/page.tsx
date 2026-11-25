@@ -4,6 +4,7 @@ import Link from "next/link";
 import { supabase, fmtIDR, type Game, type Promo } from "@/lib/supabase";
 import { useI18n } from "@/components/i18n-provider";
 import { SiteNav } from "@/components/site-nav";
+import { PaginatedGrid } from "@/components/paginated-grid";
 import {
   Gamepad2, Smartphone, Ticket, Zap, Swords, Sparkles, Star, Flame, Target,
   Wallet, ShieldCheck, Clock, ArrowUpRight, Search as SearchIcon,
@@ -235,6 +236,7 @@ export default function Home() {
       {/* Unified nav for every route — logo + ID/EN + MASUK + burger-only sidebar */}
       <SiteNav />
 
+      <main id="main-content">
       {/* ═══════════ SEARCH BAR (full-width below nav) ═══════════ */}
       <div className="search-bar-wrap">
         <div className="search-bar">
@@ -410,11 +412,11 @@ export default function Home() {
               📭 Ga ada game yang cocok dengan &quot;{search}&quot;. Coba kata lain ya.
             </div>
           ) : (
-            <div className="games-grid">
-              {filteredGames.map((g) => (
-                <GameCard key={g.id} g={g} />
-              ))}
-            </div>
+            <PaginatedGrid
+              items={filteredGames}
+              keyFn={(g) => g.id}
+              renderItem={(g) => <GameCard g={g} />}
+            />
           )}
         </div>
       ) : (
@@ -476,13 +478,11 @@ export default function Home() {
                     {games.filter((g) => g.category === "mobile" && !g.is_special_offer).length} game
                   </div>
                 </div>
-                <div className="games-grid">
-                  {games
-                    .filter((g) => g.category === "mobile" && !g.is_special_offer)
-                    .map((g) => (
-                      <GameCard key={g.id} g={g} />
-                    ))}
-                </div>
+                <PaginatedGrid
+                  items={games.filter((g) => g.category === "mobile" && !g.is_special_offer)}
+                  keyFn={(g) => g.id}
+                  renderItem={(g) => <GameCard g={g} />}
+                />
               </div>
 
               {/* Voucher section */}
@@ -496,13 +496,11 @@ export default function Home() {
                       {games.filter((g) => g.category === "voucher").length} voucher
                     </div>
                   </div>
-                  <div className="games-grid">
-                    {games
-                      .filter((g) => g.category === "voucher")
-                      .map((g) => (
-                        <GameCard key={g.id} g={g} />
-                      ))}
-                  </div>
+                  <PaginatedGrid
+                    items={games.filter((g) => g.category === "voucher")}
+                    keyFn={(g) => g.id}
+                    renderItem={(g) => <GameCard g={g} />}
+                  />
                 </div>
               )}
             </>
@@ -524,11 +522,11 @@ export default function Home() {
                   📭 Belum ada game di kategori ini.
                 </div>
               ) : (
-                <div className="games-grid">
-                  {filteredGames.map((g) => (
-                    <GameCard key={g.id} g={g} />
-                  ))}
-                </div>
+                <PaginatedGrid
+                  items={filteredGames}
+                  keyFn={(g) => g.id}
+                  renderItem={(g) => <GameCard g={g} />}
+                />
               )}
             </div>
           ) : null}
@@ -552,6 +550,8 @@ export default function Home() {
           </div>
         ))}
       </div>
+
+      </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
       <footer>
@@ -616,21 +616,21 @@ export default function Home() {
             </div>
           </div>
           <div className="col">
-            <h4>{t("foot.col_service")}</h4>
+            <h3>{t("foot.col_service")}</h3>
             <Link href="/">{t("foot.topup")}</Link>
             <Link href="/">{t("foot.heart")}</Link>
             <Link href="/">{t("foot.run")}</Link>
             <Link href="/">{t("foot.voucher")}</Link>
           </div>
           <div className="col">
-            <h4>{t("foot.col_help")}</h4>
+            <h3>{t("foot.col_help")}</h3>
             <Link href="/">{t("foot.cara_order")}</Link>
             <Link href="/lacak">{t("foot.lacak")}</Link>
             <Link href="/">{t("foot.refund")}</Link>
             <Link href="/">{t("foot.faq")}</Link>
           </div>
           <div className="col">
-            <h4>{t("foot.col_about")}</h4>
+            <h3>{t("foot.col_about")}</h3>
             <Link href="/">{t("foot.about")}</Link>
             <Link href="/">{t("foot.blog")}</Link>
             <Link href="/">{t("foot.tos")}</Link>
