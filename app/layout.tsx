@@ -10,9 +10,12 @@ import { AuthProvider } from "@/components/auth-provider";
 export const metadata: Metadata = {
   title: "Skyra Store — Top Up Game Termurah & Terpercaya",
   description: "Top up game favoritmu dengan harga paling murah. QRIS, PayPal, Wise. Proses instant, refund guaranteed.",
-  // Next.js auto-detects app/icon.png + app/apple-icon.png (local files)
-  // Removed the lh3.googleusercontent URL since browsers prefer self-hosted
-  // favicons and the Google Drive URL doesn't serve proper image headers.
+  // Favicons from /public (app/icon.png would become a route and the
+  // Cloudflare Pages build rejects non-edge routes).
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "512x512" }],
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     title: "Skyra Store — Top Up Game Termurah",
     description: "Heart Service · Run Service · Top Up Game — cepat, aman, murah.",
