@@ -13,7 +13,8 @@ export const runtime = "edge";
 type CreateOrderBody = {
   gameSlug: string;
   productId: string;
-  phone: string;
+  phone?: string;
+  email?: string;
   customData?: Record<string, unknown>;
   notes?: string;
   voucherCode?: string;
@@ -25,16 +26,27 @@ export async function POST(req: Request) {
     const body = (await req.json()) as CreateOrderBody;
 
     // ─── Validate required fields ───
-    if (!body.gameSlug || !body.productId || !body.phone) {
+    if (!body.gameSlug || !body.productId) {
       return NextResponse.json(
-        { error: "gameSlug, productId, phone wajib diisi" },
+        { error: "gameSlug & productId wajib diisi" },
         { status: 400 }
       );
     }
 
-    const cleanPhone = body.phone.replace(/[^\d+]/g, "");
-    if (cleanPhone.replace(/\D/g, "").length < 9) {
-      return NextResponse.json({ error: "Nomor WhatsApp minimal 9 digit" }, { status: 400 });
+    // Need phone OR email
+    const rawPhone = (body.phone || "").trim();
+    const rawEmail = (body.email || "").trim();
+    const cleanPhone = rawPhone ? rawPhone.replace(/[^\d+]/g, "") : "";
+    const cleanEmail = rawEmail.toLowerCase();
+
+    const phoneValid = cleanPhone && cleanPhone.replace(/\D/g, "").length >= 8;
+    const emailValid = cleanEmail && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cleanEmail);
+
+    if (!phoneValid && !emailValid) {
+      return NextResponse.json(
+        { error: "Isi nomor WhatsApp (min 8 digit) atau Email yang valid" },
+        { status: 400 }
+      );
     }
 
     // ─── Fetch game + product ───
@@ -134,7 +146,8 @@ export async function POST(req: Request) {
         grossAmount: total,
         itemName: `${game.name} — ${product.name}${qtySuffix}`,
         itemId: product.id,
-        customerPhone: cleanPhone,
+        customerPhone: phoneValid ? cleanPhone : "0000000000",
+        customerEmail: emailValid ? cleanEmail : undefined,
       });
       snapToken = snap.token;
     } catch (err) {
@@ -156,7 +169,8 @@ export async function POST(req: Request) {
       product_price_idr: product.price_idr,
       supplier: product.supplier,
       supplier_sku: product.supplier_sku,
-      phone: cleanPhone,
+      phone: phoneValid ? cleanPhone : null,
+      email: emailValid ? cleanEmail : null,
       custom_data: body.customData || {},
       notes: body.notes || null,
       voucher_code: voucherCode,

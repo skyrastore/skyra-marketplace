@@ -9,6 +9,8 @@ import { CATEGORY_ICON_URLS } from "@/lib/categoryIcons";
 import { toast } from "sonner";
 import { useI18n } from "@/components/i18n-provider";
 import { SiteNav } from "@/components/site-nav";
+import { ContactInput, type ContactValue, toPhoneString } from "@/components/contact-input";
+import { DEFAULT_COUNTRY } from "@/lib/countryCodes";
 import {
   Gift, Calendar, CalendarDays, Moon, Star, Trophy, CreditCard, Package, Gem,
   CheckCircle2, Zap, Lock, Clock, Phone, Ticket, Pencil, ClipboardList,
@@ -28,19 +30,19 @@ type InputField = { key: string; label: string; type: string; placeholder?: stri
 // Product category classifier (name-based)
 // Groups denoms into user-friendly tabs so long lists aren't a wall of text.
 // ─────────────────────────────────────────────
-function categorizeProduct(name: string): { key: string; label: string; Icon: LucideIcon } {
+// Returns key + Icon only — label is resolved at render time via t("pack.<key>")
+function categorizeProduct(name: string): { key: string; Icon: LucideIcon } {
   const n = name.toLowerCase();
-  if (/first\s*(recharge|topup)|1st\s*topup|2x\s*diamond/.test(n)) return { key: "first", label: "First Recharge", Icon: Gift };
-  if (/weekly.*(pass|diamond)|elite.*pack/.test(n)) return { key: "weekly", label: "Weekly Pass", Icon: Calendar };
-  if (/monthly.*(pass|bundle|epic|ticket|card)/.test(n)) return { key: "monthly", label: "Monthly Pass", Icon: CalendarDays };
-  if (/twilight/.test(n)) return { key: "twilight", label: "Twilight Pass", Icon: Moon };
-  if (/starlight/.test(n)) return { key: "starlight", label: "Starlight", Icon: Star };
-  if (/battle.*pass|season.*pass|royale.*pass|elite.*pass/.test(n)) return { key: "season", label: "Season Pass", Icon: Trophy };
-  if (/membership|member\b|m-card/.test(n)) return { key: "member", label: "Membership", Icon: CreditCard };
-  if (/bundle|pack|gift|voucher.*(bundle|special)/.test(n)) return { key: "bundle", label: "Bundle", Icon: Gift };
-  if (/sub\s*package|package|paket/.test(n)) return { key: "paket", label: "Paket", Icon: Package };
-  // Default: regular topup currency (Diamonds, UC, VP, Gold, etc.)
-  return { key: "topup", label: "Top Up", Icon: Gem };
+  if (/first\s*(recharge|topup)|1st\s*topup|2x\s*diamond/.test(n)) return { key: "first", Icon: Gift };
+  if (/weekly.*(pass|diamond)|elite.*pack/.test(n)) return { key: "weekly", Icon: Calendar };
+  if (/monthly.*(pass|bundle|epic|ticket|card)/.test(n)) return { key: "monthly", Icon: CalendarDays };
+  if (/twilight/.test(n)) return { key: "twilight", Icon: Moon };
+  if (/starlight/.test(n)) return { key: "starlight", Icon: Star };
+  if (/battle.*pass|season.*pass|royale.*pass|elite.*pass/.test(n)) return { key: "season", Icon: Trophy };
+  if (/membership|member\b|m-card/.test(n)) return { key: "member", Icon: CreditCard };
+  if (/bundle|pack|gift|voucher.*(bundle|special)/.test(n)) return { key: "bundle", Icon: Gift };
+  if (/sub\s*package|package|paket/.test(n)) return { key: "paket", Icon: Package };
+  return { key: "topup", Icon: Gem };
 }
 
 // Snap.js is loaded from CDN — minimal typing so TS doesn't complain
@@ -66,8 +68,17 @@ export default function GameDetailPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selected, setSelected] = useState<Product | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const [phone, setPhone] = useState("");
+  const [contact, setContact] = useState<ContactValue>({ kind: "phone", phone: "", country: DEFAULT_COUNTRY });
   const [notes, setNotes] = useState("");
+  // Derived string for display + API + WA fallback
+  const phoneString = contact.kind === "phone" ? toPhoneString(contact) : "";
+  const emailString = contact.kind === "email" ? contact.email : "";
+  const contactDisplay = contact.kind === "phone"
+    ? (contact.phone ? `${contact.country.flag} +${contact.country.dial}${contact.phone.replace(/^0+/, "")}` : "")
+    : contact.email;
+  const contactValid = contact.kind === "phone"
+    ? contact.phone.replace(/\D/g, "").length >= 7
+    : /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact.email);
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherChecking, setVoucherChecking] = useState(false);
   const [voucherApplied, setVoucherApplied] = useState<{
@@ -213,7 +224,7 @@ export default function GameDetailPage() {
       `💵 Subtotal: ${fmtIDR(subtotal)}\n` +
       (voucherApplied ? `🎟️ Voucher: *${voucherApplied.code}* (-${fmtIDR(discountAmount)})\n` : "") +
       `💰 *TOTAL: ${fmtIDR(finalPrice)}*\n` +
-      `📱 WA: ${phone}\n` +
+      `📱 Kontak: ${contactDisplay}\n` +
       `━━━━━━━━━━━━━━━━━\n` +
       `*Data Akun:*\n${dataLines}\n` +
       (notes ? `━━━━━━━━━━━━━━━━━\n📝 Catatan: ${notes}\n` : "") +
@@ -225,7 +236,7 @@ export default function GameDetailPage() {
   // ─── Validate order inputs ───
   const validateInputs = (): string | null => {
     if (!selected) return t("validate.pick_pack");
-    if (!phone || phone.length < 9) return t("validate.phone_required");
+    if (!contactValid) return t("validate.phone_required");
     for (const f of inputFields) {
       if (f.required && !formData[f.key]) return `${t("validate.field_required")} ${f.label}`;
     }
@@ -247,7 +258,8 @@ export default function GameDetailPage() {
         body: JSON.stringify({
           gameSlug: game!.slug,
           productId: selected!.id,
-          phone,
+          phone: phoneString || undefined,
+          email: emailString || undefined,
           customData: formData,
           notes: notes || undefined,
           voucherCode: voucherApplied?.code || undefined,
@@ -464,12 +476,12 @@ export default function GameDetailPage() {
             {/* Step 2: Pick denom — with category filter */}
             {(() => {
               // Compute categories present in this game's products
-              const cats = new Map<string, { label: string; Icon: LucideIcon; count: number }>();
+              const cats = new Map<string, { Icon: LucideIcon; count: number }>();
               for (const p of products) {
                 const c = categorizeProduct(p.name);
                 const cur = cats.get(c.key);
                 if (cur) cur.count++;
-                else cats.set(c.key, { label: c.label, Icon: c.Icon, count: 1 });
+                else cats.set(c.key, { Icon: c.Icon, count: 1 });
               }
               const catList = Array.from(cats.entries()).map(([key, v]) => ({ key, ...v }));
               const activeCat = selectedCategory ?? catList[0]?.key ?? null;
@@ -535,7 +547,7 @@ export default function GameDetailPage() {
                             ) : (
                               <c.Icon size={16} strokeWidth={2.2} />
                             )}
-                            <span>{c.label}</span>
+                            <span>{t(`pack.${c.key}`)}</span>
                             <span style={{ opacity: .5, fontSize: ".7rem" }}>({c.count})</span>
                           </button>
                         );
@@ -722,45 +734,8 @@ export default function GameDetailPage() {
               </div>
             )}
 
-            {/* Contact / Phone */}
-            <div
-              style={{
-                padding: 22,
-                marginTop: 0,
-                background: "#ffffff",
-                border: "1.5px solid rgba(236,72,153,.35)",
-                borderRadius: 16,
-                color: "#0f172a",
-                boxShadow: "0 10px 30px rgba(15,23,42,.18)",
-                marginBottom: 20,
-              }}
-            >
-              <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
-                {inputFields.length > 0 ? "3." : "2."} <Phone size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {t("detail.step_phone")}
-              </h3>
-              <div style={{ fontSize: ".78rem", color: "#64748b", marginBottom: 12, fontWeight: 600 }}>
-                Wajib. Buat notifikasi + kontak admin kalau ada pending.
-              </div>
-              <input
-                type="tel"
-                placeholder="08123456789"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/[^0-9+]/g, ""))}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 10,
-                  background: "#f8fafc",
-                  border: "1.5px solid rgba(236,72,153,.4)",
-                  color: "#0f172a",
-                  fontFamily: "inherit",
-                  fontSize: ".95rem",
-                  fontWeight: 700,
-                  outline: "none",
-                  letterSpacing: ".5px",
-                }}
-              />
-            </div>
+            {/* Contact: WhatsApp (w/ country code) or Email */}
+            <ContactInput value={contact} onChange={setContact} />
 
             {/* Voucher Code */}
             <div
@@ -905,7 +880,7 @@ export default function GameDetailPage() {
           </div>
 
           {/* Summary: appear after selected + phone valid */}
-          {selected && phone.length >= 9 && (
+          {selected && contactValid && (
             <div
               style={{
                 padding: 22,

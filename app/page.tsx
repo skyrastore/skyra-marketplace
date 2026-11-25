@@ -560,7 +560,7 @@ export default function Home() {
               <img src={LOGO_URL} alt="Skyra" />
               <span>SKYRA STORE</span>
             </div>
-            <p>Top-up game terpercaya untuk Sky: Children of the Light, Mobile Legends, Free Fire & lainnya. Hemat, instant, 24/7.</p>
+            <p>{t("foot.desc")}</p>
             <div style={{ display: "flex", gap: 12, marginTop: 14 }}>
               {/* Instagram */}
               <a
@@ -615,28 +615,28 @@ export default function Home() {
             </div>
           </div>
           <div className="col">
-            <h4>Layanan</h4>
-            <Link href="/">Top Up Game</Link>
-            <Link href="/">Heart Service</Link>
-            <Link href="/">Run Service</Link>
-            <Link href="/">Voucher</Link>
+            <h4>{t("foot.col_service")}</h4>
+            <Link href="/">{t("foot.topup")}</Link>
+            <Link href="/">{t("foot.heart")}</Link>
+            <Link href="/">{t("foot.run")}</Link>
+            <Link href="/">{t("foot.voucher")}</Link>
           </div>
           <div className="col">
-            <h4>Bantuan</h4>
-            <Link href="/">Cara Order</Link>
-            <Link href="/">Lacak Order</Link>
-            <Link href="/">Refund Policy</Link>
-            <Link href="/">FAQ</Link>
+            <h4>{t("foot.col_help")}</h4>
+            <Link href="/">{t("foot.cara_order")}</Link>
+            <Link href="/lacak">{t("foot.lacak")}</Link>
+            <Link href="/">{t("foot.refund")}</Link>
+            <Link href="/">{t("foot.faq")}</Link>
           </div>
           <div className="col">
-            <h4>Tentang</h4>
-            <Link href="/">Tentang Kami</Link>
-            <Link href="/">Blog</Link>
-            <Link href="/">Syarat Layanan</Link>
-            <Link href="/">Privasi</Link>
+            <h4>{t("foot.col_about")}</h4>
+            <Link href="/">{t("foot.about")}</Link>
+            <Link href="/">{t("foot.blog")}</Link>
+            <Link href="/">{t("foot.tos")}</Link>
+            <Link href="/">{t("foot.privacy")}</Link>
           </div>
         </div>
-        <div className="copy">© 2026 Skyra Store · All rights reserved</div>
+        <div className="copy">{t("foot.copy")}</div>
       </footer>
     </>
   );
