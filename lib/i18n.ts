@@ -128,7 +128,7 @@ const T: Dict = {
   "detail.pay_tip": { id: "Klik Bayar Sekarang → pilih QRIS / E-Wallet / Bank Transfer / CC di popup. Otomatis diproses setelah bayar.", en: "Click Pay Now → pick QRIS / E-Wallet / Bank Transfer / CC in popup. Auto-processed after payment." },
 
   // ─── Hero Badges ───
-  "badge.distributor": { id: "Distributor Resmi", en: "Official Distributor" },
+  "badge.distributor": { id: "Garansi Aman", en: "Safety Guaranteed" },
   "badge.instant": { id: "Isi Ulang Instan", en: "Instant Top Up" },
   "badge.manual": { id: "Proses 0-120 menit", en: "0-120 min process" },
   "badge.secure": { id: "Pembayaran Aman", en: "Secure Payment" },
