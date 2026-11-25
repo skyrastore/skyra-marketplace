@@ -15,6 +15,8 @@ const T: Dict = {
   "nav.track": { id: "Lacak Pesanan", en: "Track Order" },
   "nav.login": { id: "MASUK", en: "LOG IN" },
   "nav.back_home": { id: "← Beranda", en: "← Home" },
+  "nav.vouchers": { id: "Kupon/Voucher", en: "Vouchers" },
+  "nav.balance": { id: "Saldo", en: "Balance" },
 
   // ─── Carousel ───
   "carousel.belanja": { id: "Belanja Sekarang", en: "Shop Now" },

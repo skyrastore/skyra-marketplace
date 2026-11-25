@@ -3,9 +3,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase, fmtIDR, type Game, type Promo } from "@/lib/supabase";
 import { useI18n } from "@/components/i18n-provider";
+import { SiteNav } from "@/components/site-nav";
 import {
   Gamepad2, Smartphone, Ticket, Zap, Swords, Sparkles, Star, Flame, Target,
-  Wallet, ShieldCheck, Clock, ArrowUpRight, Search as SearchIcon, Menu, X,
+  Wallet, ShieldCheck, Clock, ArrowUpRight, Search as SearchIcon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -126,7 +127,6 @@ export default function Home() {
   const [promos, setPromos] = useState<Promo[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Hide splash after animation + track returning visitor
   useEffect(() => {
@@ -231,42 +231,8 @@ export default function Home() {
 
       <canvas id="stars" aria-hidden="true"></canvas>
 
-      {/* ═══════════ NAVBAR (unified — logo + nav items + ID/EN + MASUK) ═══════════ */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="nav-logo">
-            <img src={LOGO_URL} alt="Skyra" />
-            <span className="brand">SKYRA STORE</span>
-          </Link>
-          <div className="nav-menu-main">
-            <Link href="/">{t("nav.home")}</Link>
-            <Link href="/lacak">{t("nav.track")}</Link>
-          </div>
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-            <div className="lang-sw">
-              <button className={lang === "id" ? "on" : ""} onClick={() => setLang("id")}>ID</button>
-              <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-            </div>
-            <Link href="/login" className="nav-cta">{t("nav.login")}</Link>
-            <button
-              className="nav-burger"
-              aria-label="Open menu"
-              onClick={() => setMobileNavOpen((o) => !o)}
-            >
-              {mobileNavOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile drawer (appears below nav on small screens) */}
-        {mobileNavOpen && (
-          <div className="nav-drawer">
-            <Link href="/" onClick={() => setMobileNavOpen(false)}>{t("nav.home")}</Link>
-            <Link href="/lacak" onClick={() => setMobileNavOpen(false)}>{t("nav.track")}</Link>
-            <Link href="/login" onClick={() => setMobileNavOpen(false)}>{t("nav.login")}</Link>
-          </div>
-        )}
-      </nav>
+      {/* Unified nav for every route — logo + ID/EN + MASUK + burger-only sidebar */}
+      <SiteNav />
 
       {/* ═══════════ SEARCH BAR (full-width below nav) ═══════════ */}
       <div className="search-bar-wrap">

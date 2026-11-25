@@ -263,18 +263,21 @@ body{
 .nav-drawer a:hover{background:rgba(255,255,255,.1);color:#fff}
 
 /* ─── NAV MOBILE RESPONSIVE ─── */
+/* Nav items (Home/Lacak) are driven by the sidebar drawer — hide the
+   inline menu on every viewport so the burger + drawer is the single
+   source of truth. MASUK stays in the bar, not the drawer. */
+.nav-menu-main{display:none !important}
+
 @media(max-width:860px){
-  .nav-inner{padding:10px 14px;gap:10px}
-  .nav-menu-main{display:none}
-  .lang-sw{display:none}
-  .nav-logo .brand{font-size:.95rem;letter-spacing:2px}
-  .nav-logo img{width:32px;height:32px}
-  .nav-search{order:3;flex-basis:100%;max-width:none;margin-left:0}
-  .nav-cta{padding:8px 14px;font-size:.75rem}
+  .nav-inner{padding:10px 14px;gap:8px}
+  .nav-logo .brand{font-size:.9rem;letter-spacing:1.5px}
+  .nav-logo img{width:30px;height:30px}
+  .lang-sw button{padding:3px 8px;font-size:.65rem}
+  .nav-cta{padding:7px 12px;font-size:.72rem}
+  .nav-burger{width:36px;height:36px}
 }
-@media(max-width:400px){
-  .nav-logo .brand{display:none}
-  .nav-cta{padding:7px 12px}
+@media(max-width:380px){
+  .nav-logo .brand{font-size:.75rem;letter-spacing:1px}
 }
 
 /* ─── GAME DETAIL PAGE RESPONSIVE ─── */
