@@ -10,13 +10,30 @@ export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Supabase JS auto-captures the OAuth hash/code on this URL
-    // via detectSessionInUrl (default). Give it a tick, then bounce.
-    const timer = setTimeout(async () => {
-      const { data } = await supabase.auth.getSession();
-      router.replace(data.session ? "/" : "/login?error=callback_failed");
-    }, 400);
-    return () => clearTimeout(timer);
+    // 1. First try: subscribe to SIGNED_IN event (fires once supabase-js
+    //    processes the URL hash and stores tokens). This is the reliable path.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        // Full reload (not router.replace) so every page reads the fresh session
+        window.location.assign("/");
+      }
+    });
+
+    // 2. Belt-and-braces: if the hash was already processed before we subscribed
+    //    (super fast), check getSession() right away too.
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.assign("/");
+    });
+
+    // 3. Hard timeout — if nothing happened after 4s, bounce to login with err
+    const fallback = setTimeout(() => {
+      window.location.assign("/login?error=callback_timeout");
+    }, 4000);
+
+    return () => {
+      sub.subscription.unsubscribe();
+      clearTimeout(fallback);
+    };
   }, [router]);
 
   return (
