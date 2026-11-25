@@ -124,7 +124,7 @@ export default function Home() {
   const [cat, setCat] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
   const [searchFocus, setSearchFocus] = useState(false);
-  const { lang, setLang, t } = useI18n();
+  const { t } = useI18n();
   const [promos, setPromos] = useState<Promo[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);

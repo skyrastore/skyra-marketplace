@@ -1,46 +1,24 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { type Lang, translate, getStoredLang, setStoredLang } from "@/lib/i18n";
+// ID-only mode: toggle removed 2026-11-25. t() stays as a thin
+// wrapper so existing t('key') calls across the codebase keep
+// working without a mass refactor. lang/setLang are kept in the
+// return shape (no-op) so any lingering destructure doesn't crash.
 
-type Ctx = {
-  lang: Lang;
-  setLang: (l: Lang) => void;
-  t: (key: string) => string;
-};
-
-const I18nContext = createContext<Ctx | null>(null);
+import { translate } from "@/lib/i18n";
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("id");
-
-  useEffect(() => {
-    setLangState(getStoredLang());
-  }, []);
-
-  const setLang = useCallback((l: Lang) => {
-    setLangState(l);
-    setStoredLang(l);
-  }, []);
-
-  const t = useCallback((key: string) => translate(key, lang), [lang]);
-
-  return <I18nContext.Provider value={{ lang, setLang, t }}>{children}</I18nContext.Provider>;
+  return <>{children}</>;
 }
 
 export function useI18n() {
-  const ctx = useContext(I18nContext);
-  if (!ctx) {
-    // Allow use outside provider (fallback to ID)
-    return {
-      lang: "id" as Lang,
-      setLang: () => {},
-      t: (key: string) => translate(key, "id"),
-    };
-  }
-  return ctx;
+  return {
+    lang: "id" as const,
+    setLang: () => {},
+    t: (key: string) => translate(key, "id"),
+  };
 }
 
 export function useT() {
-  return useI18n().t;
+  return (key: string) => translate(key, "id");
 }

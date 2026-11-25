@@ -14,7 +14,7 @@ const IS_AUTHED = false;
 // Only contains: logo + ID/EN + MASUK + burger. All route links live in the
 // burger drawer so there's no double-chrome.
 export function SiteNav() {
-  const { lang, setLang, t } = useI18n();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
   // Menu items shown inside drawer. Auth-gated rows show when IS_AUTHED is true.
@@ -37,10 +37,6 @@ export function SiteNav() {
           <span className="brand">SKYRA STORE</span>
         </Link>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-          <div className="lang-sw">
-            <button className={lang === "id" ? "on" : ""} onClick={() => setLang("id")}>ID</button>
-            <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-          </div>
           <Link href="/login" className="nav-cta">{t("nav.login")}</Link>
           <button
             className="nav-burger"

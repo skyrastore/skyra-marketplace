@@ -236,7 +236,7 @@ export function ContactInput({
       {kind === "email" && (
         <input
           type="email"
-          placeholder="email@contoh.com"
+          placeholder="example@email.com"
           value={value.email}
           onChange={(e) => onChange({ kind: "email", email: e.target.value.trim() })}
           style={{
