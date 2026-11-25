@@ -396,7 +396,7 @@ export default function GameDetailPage() {
           <div
             style={{
               padding: "14px 18px",
-              background: "rgba(123,195,255,.14)",
+              background: "rgba(255,255,255,.95)",
               border: "1.5px solid rgba(123,195,255,.5)",
               borderRadius: 12,
               color: "#1e40af",
@@ -404,6 +404,7 @@ export default function GameDetailPage() {
               fontWeight: 600,
               marginBottom: 24,
               lineHeight: 1.5,
+              boxShadow: "0 4px 14px rgba(15,23,42,.1)",
             }}
           >
             <Lightbulb size={14} style={{ display: "inline", verticalAlign: "-3px", marginRight: 6 }} />{game.instructions}
