@@ -6,12 +6,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ArrowRight, Receipt } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "@/components/i18n-provider";
+import { SiteNav } from "@/components/site-nav";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const ORDER_CODE_RE = /^SKY-\d{8}-[A-Z0-9]{4,10}$/i;
 
 export default function LacakPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -36,17 +39,7 @@ export default function LacakPage() {
 
   return (
     <>
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="nav-logo">
-            <img src={LOGO_URL} alt="Skyra" />
-            <span className="brand">SKYRA STORE</span>
-          </Link>
-          <div style={{ marginLeft: "auto" }}>
-            <Link href="/" className="nav-cta">← Beranda</Link>
-          </div>
-        </div>
-      </nav>
+      <SiteNav />
 
       <div style={{ maxWidth: 560, margin: "40px auto 80px", padding: "0 24px", position: "relative", zIndex: 1 }}>
         {/* Hero */}
@@ -75,10 +68,10 @@ export default function LacakPage() {
               textShadow: "0 2px 20px rgba(5,20,80,.5)",
             }}
           >
-            Lacak Pesanan
+            {t("track.title")}
           </h1>
           <p style={{ fontSize: ".92rem", opacity: .85, fontWeight: 500, lineHeight: 1.5 }}>
-            Masukkan kode order kamu di bawah untuk cek status real-time.
+            {t("track.subtitle")}
           </p>
         </div>
 
@@ -104,7 +97,7 @@ export default function LacakPage() {
               letterSpacing: ".02em",
             }}
           >
-            Kode Order
+            {t("track.label")}
           </label>
           <div style={{ position: "relative" }}>
             <div
@@ -154,9 +147,9 @@ export default function LacakPage() {
             }}
           >
             {isValid
-              ? "✓ Format valid — klik Cek Status"
+              ? t("track.valid")
               : normalized
-              ? "Format: SKY-YYYYMMDD-XXXXXX (diambil dari WhatsApp / email konfirmasi)"
+              ? t("track.format_hint")
               : ""}
           </div>
 
@@ -186,7 +179,7 @@ export default function LacakPage() {
               gap: 8,
             }}
           >
-            {loading ? "Membuka…" : "Cek Status Order"} <ArrowRight size={16} />
+            {loading ? t("track.opening") : t("track.submit")} <ArrowRight size={16} />
           </button>
         </form>
 
@@ -204,10 +197,9 @@ export default function LacakPage() {
             color: "rgba(255,255,255,.9)",
           }}
         >
-          <div style={{ fontWeight: 700, color: "#fff", marginBottom: 6 }}>💡 Lupa kode order?</div>
+          <div style={{ fontWeight: 700, color: "#fff", marginBottom: 6 }}>{t("track.help_title")}</div>
           <div style={{ opacity: .85, fontWeight: 500 }}>
-            Cek chat WhatsApp dari admin — kode order dikirim setelah pembayaran (format <code style={{ background: "rgba(255,255,255,.1)", padding: "1px 6px", borderRadius: 4 }}>SKY-xxx</code>).
-            Atau kontak admin via WhatsApp (tombol hijau di pojok kanan bawah).
+            {t("track.help_desc")}
           </div>
         </div>
       </div>

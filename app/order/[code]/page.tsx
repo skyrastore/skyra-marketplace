@@ -9,6 +9,8 @@ import {
   Clock, Wallet, Settings, CheckCircle2, XCircle, Hourglass, Ban,
   MessageCircle, Home, ClipboardList, Lightbulb, type LucideIcon,
 } from "lucide-react";
+import { useI18n } from "@/components/i18n-provider";
+import { SiteNav } from "@/components/site-nav";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const ADMIN_WA = "6285183346300";
@@ -82,6 +84,7 @@ export default function OrderStatusPage() {
   const params = useParams<{ code: string }>();
   const searchParams = useSearchParams();
   const initialStatus = searchParams.get("status");
+  const { t } = useI18n();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -122,36 +125,35 @@ export default function OrderStatusPage() {
   }, [params.code]);
 
   if (loading) {
-    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}><Clock size={18} /> Loading...</div>;
+    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}><Clock size={18} /> {t("status.loading")}</div>;
   }
 
   if (notFound) {
     return (
       <div style={{ textAlign: "center", padding: 80, color: "#0f172a" }}>
-        <h2 style={{ fontFamily: "'Fredoka'", marginBottom: 16 }}>Order tidak ditemukan</h2>
+        <h2 style={{ fontFamily: "'Fredoka'", marginBottom: 16 }}>{t("status.not_found_title")}</h2>
         <div style={{ fontSize: ".9rem", opacity: .75, marginBottom: 20 }}>
-          Kode order <code>{params.code}</code> tidak terdaftar atau sudah dihapus.
+          {t("status.not_found_desc")} <code>{params.code}</code>
         </div>
-        <Link href="/" style={{ color: "#2272dc", fontWeight: 700 }}>← Kembali ke beranda</Link>
+        <Link href="/" style={{ color: "#2272dc", fontWeight: 700 }}>{t("nav.back_home")}</Link>
       </div>
     );
   }
 
-  const status = STATUS_INFO[order!.status] || { label: order!.status, Icon: Clock, color: "#9ca3af", desc: "" };
+  const baseStatus = STATUS_INFO[order!.status] || { label: order!.status, Icon: Clock, color: "#9ca3af", desc: "" };
+  const status = {
+    ...baseStatus,
+    label: t(`status.label.${order!.status}`) !== `status.label.${order!.status}`
+      ? t(`status.label.${order!.status}`)
+      : baseStatus.label,
+    desc: t(`status.desc.${order!.status}`) !== `status.desc.${order!.status}`
+      ? t(`status.desc.${order!.status}`)
+      : baseStatus.desc,
+  };
 
   return (
     <>
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="nav-logo">
-            <img src={LOGO_URL} alt="Skyra" />
-            <span className="brand">SKYRA STORE</span>
-          </Link>
-          <div style={{ marginLeft: "auto" }}>
-            <Link href="/" className="nav-cta">← Beranda</Link>
-          </div>
-        </div>
-      </nav>
+      <SiteNav />
 
       <div style={{ maxWidth: 680, margin: "20px auto 60px", padding: "0 24px", position: "relative", zIndex: 1 }}>
         {/* Status Hero */}
@@ -187,7 +189,7 @@ export default function OrderStatusPage() {
 
           {!["done", "failed", "expired", "cancelled"].includes(order!.status) && (
             <div style={{ fontSize: ".75rem", opacity: .6, marginTop: 14 }}>
-              Status di-refresh otomatis tiap 5 detik…
+              {t("status.autorefresh")}
             </div>
           )}
         </div>
@@ -205,18 +207,18 @@ export default function OrderStatusPage() {
           }}
         >
           <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
-            <ClipboardList size={16} /> Detail Order
+            <ClipboardList size={16} /> {t("status.detail")}
           </h3>
           {[
-            ["Kode Order", order!.order_code],
-            ["Game", order!.game_name],
-            ["Paket", order!.product_name],
-            ["Nomor WA", order!.phone],
-            ...(order!.voucher_code ? [[`Voucher`, order!.voucher_code]] : []),
-            ...(order!.payment_channel ? [["Metode", order!.payment_channel.toUpperCase()]] : []),
+            [t("status.code"), order!.order_code],
+            [t("detail.game"), order!.game_name],
+            [t("detail.package"), order!.product_name],
+            [t("status.wa_number"), order!.phone],
+            ...(order!.voucher_code ? [[t("detail.voucher_label"), order!.voucher_code]] : []),
+            ...(order!.payment_channel ? [[t("status.method"), order!.payment_channel.toUpperCase()]] : []),
             ...(order!.uniplay_order_id ? [["UniPlay Ref", order!.uniplay_order_id]] : []),
-            ["Harga", fmtIDR(order!.subtotal_idr)],
-            ...(order!.voucher_discount_idr ? [[`Diskon`, `-${fmtIDR(order!.voucher_discount_idr)}`]] : []),
+            [t("detail.price"), fmtIDR(order!.subtotal_idr)],
+            ...(order!.voucher_discount_idr ? [[t("status.diskon"), `-${fmtIDR(order!.voucher_discount_idr)}`]] : []),
           ].map(([k, v]) => (
             <div
               key={k}
@@ -236,7 +238,7 @@ export default function OrderStatusPage() {
               fontSize: "1.05rem",
             }}
           >
-            <span>TOTAL</span>
+            <span>{t("detail.total")}</span>
             <span style={{ color: "#2272dc", fontSize: "1.2rem" }}>{fmtIDR(order!.total_idr)}</span>
           </div>
         </div>
@@ -258,7 +260,7 @@ export default function OrderStatusPage() {
               }}
             >
               <Lightbulb size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 6 }} />
-              Belum bayar? Tutup tab ini & retry order dari halaman game.
+              {t("status.retry_tip")}
             </div>
           )}
 
@@ -281,7 +283,7 @@ export default function OrderStatusPage() {
               }}
             >
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <MessageCircle size={16} /> Hubungi Admin via WhatsApp
+                <MessageCircle size={16} /> {t("status.contact_admin")}
               </span>
             </a>
           )}
@@ -302,7 +304,7 @@ export default function OrderStatusPage() {
             }}
           >
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <Home size={16} /> Kembali ke Beranda
+              <Home size={16} /> {t("status.back_home")}
             </span>
           </Link>
         </div>

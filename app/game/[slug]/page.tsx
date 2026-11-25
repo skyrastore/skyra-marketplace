@@ -7,6 +7,8 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase, fmtIDR, type Game, type Product } from "@/lib/supabase";
 import { CATEGORY_ICON_URLS } from "@/lib/categoryIcons";
 import { toast } from "sonner";
+import { useI18n } from "@/components/i18n-provider";
+import { SiteNav } from "@/components/site-nav";
 import {
   Gift, Calendar, CalendarDays, Moon, Star, Trophy, CreditCard, Package, Gem,
   CheckCircle2, Zap, Lock, Clock, Phone, Ticket, Pencil, ClipboardList,
@@ -59,6 +61,7 @@ type SnapWindow = Window & {
 export default function GameDetailPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
+  const { t } = useI18n();
   const [game, setGame] = useState<Game | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [selected, setSelected] = useState<Product | null>(null);
@@ -180,13 +183,13 @@ export default function GameDetailPage() {
   }, [params.slug, router]);
 
   if (loading) {
-    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}><Clock size={18} /> Loading...</div>;
+    return <div style={{ textAlign: "center", padding: 80, color: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}><Clock size={18} /> {t("status.loading")}</div>;
   }
   if (!game) {
     return (
       <div style={{ textAlign: "center", padding: 80, color: "#0f172a" }}>
-        <h2 style={{ fontFamily: "'Fredoka'", marginBottom: 16 }}>Game tidak ditemukan</h2>
-        <Link href="/" style={{ color: "#2272dc" }}>← Kembali ke beranda</Link>
+        <h2 style={{ fontFamily: "'Fredoka'", marginBottom: 16 }}>{t("status.not_found_title")}</h2>
+        <Link href="/" style={{ color: "#2272dc" }}>{t("nav.back_home")}</Link>
       </div>
     );
   }
@@ -302,19 +305,7 @@ export default function GameDetailPage() {
 
   return (
     <>
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="nav-logo">
-            <img src={LOGO_URL} alt="Skyra" />
-            <span className="brand">SKYRA STORE</span>
-          </Link>
-          <div style={{ marginLeft: "auto" }}>
-            <Link href="/" className="nav-cta">
-              ← Beranda
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteNav />
 
       <div style={{ maxWidth: 1100, margin: "20px auto 60px", padding: "0 24px", position: "relative", zIndex: 1 }}>
         {/* Game Hero + badges inline */}
@@ -358,9 +349,9 @@ export default function GameDetailPage() {
                 {/* Badges row ABOVE title — all unified blue */}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
                   {[
-                    { Icon: CheckCircle2, label: "Distributor Resmi" },
-                    { Icon: isInstant ? Zap : Clock, label: isInstant ? "Isi Ulang Instan" : "Proses 0-120 menit" },
-                    { Icon: Lock, label: "Pembayaran Aman" },
+                    { Icon: CheckCircle2, label: t("badge.distributor") },
+                    { Icon: isInstant ? Zap : Clock, label: isInstant ? t("badge.instant") : t("badge.manual") },
+                    { Icon: Lock, label: t("badge.secure") },
                   ].map((b, i) => (
                     <span
                       key={i}
@@ -435,7 +426,7 @@ export default function GameDetailPage() {
                 }}
               >
                 <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
-                  1. Masukkan Data Akun
+                  1. {t("detail.step_input")}
                 </h3>
                 <div style={{ display: "grid", gap: 12 }}>
                   {inputFields.map((f) => (
@@ -498,7 +489,7 @@ export default function GameDetailPage() {
                   }}
                 >
                   <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
-                    {inputFields.length > 0 ? "2." : "1."} Pilih Paket
+                    {inputFields.length > 0 ? "2." : "1."} {t("detail.step_pack")}
                   </h3>
 
                   {/* Category filter pills — only show if 2+ categories */}
@@ -553,7 +544,7 @@ export default function GameDetailPage() {
 
                   {filtered.length === 0 ? (
                     <div style={{ textAlign: "center", padding: 20, opacity: 0.7, fontSize: ".85rem" }}>
-                      Belum ada paket tersedia
+                      {t("detail.step_pack")}…
                     </div>
                   ) : (
                     <div
@@ -676,7 +667,7 @@ export default function GameDetailPage() {
                 }}
               >
                 <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-                  <Package size={14} /> Jumlah Pesanan
+                  <Package size={14} /> {t("detail.qty")}
                 </h3>
                 <div style={{ fontSize: ".75rem", color: "#64748b", marginBottom: 12, fontWeight: 600 }}>
                   Order lebih dari 1 kali? Cukup atur qty — admin proses sekaligus.
@@ -744,7 +735,7 @@ export default function GameDetailPage() {
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
-                {inputFields.length > 0 ? "3." : "2."} <Phone size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> Nomor WhatsApp
+                {inputFields.length > 0 ? "3." : "2."} <Phone size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {t("detail.step_phone")}
               </h3>
               <div style={{ fontSize: ".78rem", color: "#64748b", marginBottom: 12, fontWeight: 600 }}>
                 Wajib. Buat notifikasi + kontak admin kalau ada pending.
@@ -783,7 +774,7 @@ export default function GameDetailPage() {
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
-                <Ticket size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> Kode Voucher <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
+                <Ticket size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {t("detail.voucher")} <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>({t("detail.optional")})</span>
               </h3>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
@@ -880,7 +871,7 @@ export default function GameDetailPage() {
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
-                <Pencil size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> Catatan Order <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>(opsional)</span>
+                <Pencil size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {t("detail.notes")} <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>({t("detail.optional")})</span>
               </h3>
               <div style={{ fontSize: ".75rem", color: "#64748b", marginBottom: 10, fontWeight: 600 }}>
                 Contoh: proses malam ya, hati2 jangan ganti password, dsb.
@@ -926,21 +917,21 @@ export default function GameDetailPage() {
               }}
             >
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1rem", marginBottom: 14 }}>
-                <ClipboardList size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> Ringkasan Order
+                <ClipboardList size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {t("detail.summary")}
               </h3>
               {[
-                ["Game", game.name.split(":")[0]],
-                ["Paket", selected?.name || "—"],
+                [t("detail.game"), game.name.split(":")[0]],
+                [t("detail.package"), selected?.name || "—"],
                 ...(isManualProduct
                   ? ([
-                      ["Qty", `${qty}×`],
-                      ["Subtotal", fmtIDR(subtotal)],
+                      [t("detail.qty_label"), `${qty}×`],
+                      [t("detail.subtotal"), fmtIDR(subtotal)],
                     ] as [string, string][])
-                  : ([["Harga", selected ? fmtIDR(selected.price_idr) : "Rp 0"]] as [string, string][])),
+                  : ([[t("detail.price"), selected ? fmtIDR(selected.price_idr) : "Rp 0"]] as [string, string][])),
                 ...(voucherApplied
-                  ? ([[`Voucher (${voucherApplied.code})`, `-${fmtIDR(discountAmount)}`]] as [string, string][])
+                  ? ([[`${t("detail.voucher_label")} (${voucherApplied.code})`, `-${fmtIDR(discountAmount)}`]] as [string, string][])
                   : ([] as [string, string][])),
-                ["Admin fee", "Rp 0"],
+                [t("detail.admin_fee"), "Rp 0"],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "#334155" }}>
                   <span>{k}</span>
@@ -958,7 +949,7 @@ export default function GameDetailPage() {
                   fontSize: "1.1rem",
                 }}
               >
-                <span>TOTAL</span>
+                <span>{t("detail.total")}</span>
                 <span style={{ color: "#2272dc", fontSize: "1.3rem" }}>{fmtIDR(finalPrice)}</span>
               </div>
 
@@ -987,7 +978,7 @@ export default function GameDetailPage() {
               >
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                   {paying ? <Clock size={16} /> : <CreditCard size={16} />}
-                  {paying ? "Memproses…" : "Bayar Sekarang"}
+                  {paying ? t("detail.processing") : t("detail.pay_now")}
                 </span>
               </button>
 
@@ -1011,7 +1002,7 @@ export default function GameDetailPage() {
               >
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                   <MessageCircle size={16} />
-                  Atau pesan via WhatsApp
+                  {t("detail.wa_fallback")}
                 </span>
               </button>
 
@@ -1028,7 +1019,7 @@ export default function GameDetailPage() {
                   lineHeight: 1.45,
                 }}
               >
-                <Lightbulb size={12} style={{ display: "inline", verticalAlign: "-1px", marginRight: 4 }} /> Klik <b>Bayar Sekarang</b> → pilih QRIS / E-Wallet / Bank Transfer / CC di popup. Otomatis diproses setelah bayar.
+                <Lightbulb size={12} style={{ display: "inline", verticalAlign: "-1px", marginRight: 4 }} /> {t("detail.pay_tip")}
               </div>
             </div>
           )}
