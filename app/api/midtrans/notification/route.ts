@@ -40,6 +40,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, info: "unmapped status" });
     }
 
+    // ─── Branch: wallet topup orders use WLT- prefix ───
+    if (typeof payload.order_id === "string" && payload.order_id.startsWith("WLT-")) {
+      return handleWalletTopup(payload, newStatus);
+    }
+
     // ─── Fetch current order ───
     const { data: order, error: fetchErr } = await supabaseAdmin
       .from("orders")
@@ -84,6 +89,59 @@ export async function POST(req: Request) {
     console.error("Midtrans notification error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
+}
+
+// ─── Wallet topup handler ───
+// payload.order_id = 'WLT-<nonce>-<ts>'
+// On 'paid': look up the pre-registered topup, credit via apply_wallet_tx RPC
+async function handleWalletTopup(payload: Record<string, unknown>, newStatus: string) {
+  const midtransOrderId = String(payload.order_id);
+
+  const { data: topup, error: fetchErr } = await supabaseAdmin
+    .from("wallet_topups")
+    .select("midtrans_order_id, user_id, amount_idr, status")
+    .eq("midtrans_order_id", midtransOrderId)
+    .maybeSingle();
+
+  if (fetchErr || !topup) {
+    console.warn("Wallet topup not found:", midtransOrderId);
+    return NextResponse.json({ error: "Topup not found" }, { status: 404 });
+  }
+
+  if (topup.status === "paid") {
+    return NextResponse.json({ ok: true, info: "topup already applied" });
+  }
+
+  if (newStatus === "paid") {
+    // Credit the wallet atomically via RPC (balance update + ledger row in one tx)
+    const { error: rpcErr } = await supabaseAdmin.rpc("apply_wallet_tx", {
+      p_user_id: topup.user_id,
+      p_tx_type: "topup",
+      p_amount_idr: topup.amount_idr,
+      p_description: `Topup via ${payload.payment_type || "Midtrans"}`,
+      p_midtrans_order_id: midtransOrderId,
+    });
+    if (rpcErr) {
+      console.error("apply_wallet_tx failed:", rpcErr);
+      return NextResponse.json({ error: "Credit failed" }, { status: 500 });
+    }
+
+    await supabaseAdmin
+      .from("wallet_topups")
+      .update({ status: "paid", paid_at: new Date().toISOString() })
+      .eq("midtrans_order_id", midtransOrderId);
+
+    return NextResponse.json({ ok: true, topup: midtransOrderId, credited: topup.amount_idr });
+  }
+
+  if (["failed", "expired", "cancelled"].includes(newStatus)) {
+    await supabaseAdmin
+      .from("wallet_topups")
+      .update({ status: newStatus === "failed" ? "failed" : newStatus })
+      .eq("midtrans_order_id", midtransOrderId);
+  }
+
+  return NextResponse.json({ ok: true, topup: midtransOrderId, status: newStatus });
 }
 
 // GET buat testing di browser — confirm endpoint reachable
