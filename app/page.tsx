@@ -252,7 +252,7 @@ export default function Home() {
           {search && (
             <button
               onClick={() => setSearch("")}
-              aria-label="Clear"
+              aria-label={t("a11y.clear")}
               className="search-clear"
             >
               ×
@@ -360,10 +360,10 @@ export default function Home() {
           </div>
           {promos.length > 1 && (
             <>
-              <button className="slider-nav prev" onClick={() => changeSlide(-1)} aria-label="Previous slide">
+              <button className="slider-nav prev" onClick={() => changeSlide(-1)} aria-label={t("a11y.prev_slide")}>
                 ‹
               </button>
-              <button className="slider-nav next" onClick={() => changeSlide(1)} aria-label="Next slide">
+              <button className="slider-nav next" onClick={() => changeSlide(1)} aria-label={t("a11y.next_slide")}>
                 ›
               </button>
               <div className="slider-dots">

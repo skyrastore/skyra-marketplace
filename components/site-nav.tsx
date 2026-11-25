@@ -44,7 +44,7 @@ export function SiteNav() {
           <Link href="/login" className="nav-cta">{t("nav.login")}</Link>
           <button
             className="nav-burger"
-            aria-label="Open menu"
+            aria-label={t("a11y.open_menu")}
             onClick={() => setOpen((o) => !o)}
           >
             {open ? <X size={20} /> : <Menu size={20} />}

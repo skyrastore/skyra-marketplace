@@ -77,7 +77,7 @@ export function CSButton() {
 
       {/* Floating FAB */}
       <button
-        aria-label="Hubungi Admin via WhatsApp"
+        aria-label={t("cs.title")}
         onClick={() => setOpen((o) => !o)}
         style={{
           position: "fixed",

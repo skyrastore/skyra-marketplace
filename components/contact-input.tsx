@@ -121,7 +121,13 @@ export function ContactInput({
                 minWidth: 96,
               }}
             >
-              <span style={{ fontSize: "1rem" }}>{value.country.flag}</span>
+              <img
+                src={`https://flagcdn.com/w40/${value.country.code.toLowerCase()}.png`}
+                alt={value.country.code}
+                width={20}
+                height={14}
+                style={{ borderRadius: 2, objectFit: "cover" }}
+              />
               <span>+{value.country.dial}</span>
               <ChevronDown size={14} style={{ opacity: .6 }} />
             </button>
@@ -210,7 +216,13 @@ export function ContactInput({
                     textAlign: "left",
                   }}
                 >
-                  <span style={{ fontSize: "1.1rem" }}>{c.flag}</span>
+                  <img
+                    src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
+                    alt={c.code}
+                    width={22}
+                    height={15}
+                    style={{ borderRadius: 2, objectFit: "cover", flexShrink: 0 }}
+                  />
                   <span style={{ flex: 1, fontWeight: 600 }}>{c.name}</span>
                   <span style={{ color: "#64748b", fontWeight: 700 }}>+{c.dial}</span>
                 </button>

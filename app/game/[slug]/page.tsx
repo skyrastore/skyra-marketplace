@@ -829,7 +829,7 @@ export default function GameDetailPage() {
                       cursor: "pointer",
                     }}
                   >
-                    ✕ Batal
+                    {t("detail.voucher_cancel")}
                   </button>
                 ) : (
                   <button
@@ -850,7 +850,7 @@ export default function GameDetailPage() {
                       opacity: voucherCode.trim() ? 1 : 0.5,
                     }}
                   >
-                    {voucherChecking ? "..." : "CEK"}
+                    {voucherChecking ? "..." : t("detail.voucher_check")}
                   </button>
                 )}
               </div>
@@ -867,7 +867,7 @@ export default function GameDetailPage() {
                     fontWeight: 700,
                   }}
                 >
-                  <CheckCircle2 size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {voucherApplied.message} — hemat {fmtIDR(discountAmount)}
+                  <CheckCircle2 size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {voucherApplied.message} — {t("detail.voucher_save")} {fmtIDR(discountAmount)}
                 </div>
               )}
             </div>
@@ -887,7 +887,7 @@ export default function GameDetailPage() {
                 <Pencil size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {t("detail.notes")} <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>({t("detail.optional")})</span>
               </h3>
               <div style={{ fontSize: ".75rem", color: "#64748b", marginBottom: 10, fontWeight: 600 }}>
-                Contoh: proses malam ya, hati2 jangan ganti password, dsb.
+                {t("detail.notes_hint")}
               </div>
               <textarea
                 placeholder={t("ph.notes")}
