@@ -116,11 +116,15 @@ export async function verifyNotificationSignature(payload: {
   gross_amount: string;
   signature_key: string;
 }): Promise<boolean> {
-  const serverKey = env("MIDTRANS_SERVER_KEY");
-  if (!serverKey) return false;
+  // Midtrans Dashboard V2 separates two keys:
+  //   - MIDTRANS_SIGNATURE_KEY ("Signature Secret Key") → webhook HMAC
+  //   - MIDTRANS_SERVER_KEY   (from Server Keys table) → API auth
+  // Fall back to SERVER_KEY for older merchants that still have the combined key.
+  const sigKey = env("MIDTRANS_SIGNATURE_KEY") || env("MIDTRANS_SERVER_KEY");
+  if (!sigKey) return false;
 
   const expected = await sha512Hex(
-    payload.order_id + payload.status_code + payload.gross_amount + serverKey
+    payload.order_id + payload.status_code + payload.gross_amount + sigKey
   );
 
   return expected === payload.signature_key;

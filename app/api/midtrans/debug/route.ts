@@ -17,6 +17,7 @@ export async function GET(req: Request) {
   if (!order) return NextResponse.json({ error: "pass ?order=<midtrans_order_id>" }, { status: 400 });
 
   const serverKey = env("MIDTRANS_SERVER_KEY");
+  const sigKey = env("MIDTRANS_SIGNATURE_KEY");
   if (!serverKey) {
     return NextResponse.json({
       ok: false,
@@ -43,6 +44,9 @@ export async function GET(req: Request) {
     server_key_length: serverKey.length,
     server_key_starts_space: serverKey.startsWith(" "),
     server_key_trailing_space: serverKey.endsWith(" "),
+    signature_key_present: !!sigKey,
+    signature_key_prefix: sigKey ? sigKey.slice(0, 10) : null,
+    signature_key_length: sigKey ? sigKey.length : 0,
     midtrans_response: data,
   });
 }
