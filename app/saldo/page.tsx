@@ -33,6 +33,8 @@ declare global {
 }
 
 const TOPUP_OPTIONS = [10_000, 25_000, 50_000, 100_000, 200_000, 500_000];
+const CUSTOM_MIN = 10_000;
+const CUSTOM_MAX = 10_000_000;
 const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
 
 export default function SaldoPage() {
@@ -43,6 +45,7 @@ export default function SaldoPage() {
   const [loading, setLoading] = useState(true);
   const [topupLoading, setTopupLoading] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [customAmt, setCustomAmt] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) router.replace("/login?next=/saldo");
@@ -179,57 +182,137 @@ export default function SaldoPage() {
         </div>
       </main>
 
-      {/* Topup bottom sheet */}
+      {/* Topup modal — centered on all viewports */}
       {sheetOpen && (
         <div
           onClick={() => setSheetOpen(false)}
-          style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,.6)", zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15,23,42,.65)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            backdropFilter: "blur(6px)",
+            animation: "fadeIn .2s ease",
+          }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
               background: "#fff",
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              padding: "24px 20px 34px",
+              borderRadius: 20,
+              padding: "22px 22px 24px",
               width: "100%",
-              maxWidth: 520,
-              animation: "slideUp .25s cubic-bezier(.34,1.56,.64,1)",
+              maxWidth: 440,
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 60px rgba(0,0,0,.35)",
+              animation: "popIn .25s cubic-bezier(.34,1.56,.64,1)",
             }}
           >
-            <div style={{ width: 40, height: 4, background: "#cbd5e1", borderRadius: 2, margin: "0 auto 16px" }} />
-            <h3 style={{ fontFamily: "'Fredoka'", fontSize: "1.2rem", fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>Pilih Nominal Topup</h3>
-            <p style={{ fontSize: ".82rem", color: "#64748b", marginBottom: 18, fontWeight: 500 }}>
-              Bayar via QRIS / E-Wallet / Bank — saldo masuk otomatis setelah pembayaran.
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+              <div>
+                <h3 style={{ fontFamily: "'Fredoka'", fontSize: "1.2rem", fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>Pilih Nominal Topup</h3>
+                <p style={{ fontSize: ".78rem", color: "#64748b", fontWeight: 500, margin: 0 }}>
+                  QRIS / E-Wallet / Bank · saldo masuk auto
+                </p>
+              </div>
+              <button
+                onClick={() => setSheetOpen(false)}
+                aria-label="Tutup"
+                style={{ background: "#f1f5f9", border: 0, width: 32, height: 32, borderRadius: 8, color: "#475569", cursor: "pointer", fontSize: "1.1rem", lineHeight: 1 }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
               {TOPUP_OPTIONS.map((amt) => (
                 <button
                   key={amt}
                   onClick={() => startTopup(amt)}
                   disabled={topupLoading}
                   style={{
-                    padding: "16px 14px",
-                    borderRadius: 12,
+                    padding: "14px 6px",
+                    borderRadius: 11,
                     border: "1.5px solid #e2e8ff",
                     background: "#f8fafc",
                     color: "#0f172a",
                     fontFamily: "inherit",
-                    fontSize: ".95rem",
+                    fontSize: ".85rem",
                     fontWeight: 800,
                     cursor: topupLoading ? "wait" : "pointer",
                     transition: "all .15s",
+                    lineHeight: 1.2,
                   }}
                 >
-                  Rp {amt.toLocaleString("id-ID")}
+                  Rp {(amt / 1000) >= 1000 ? `${amt / 1_000_000}jt` : `${amt / 1000}k`}
                 </button>
               ))}
             </div>
+
+            {/* Custom amount */}
+            <div style={{ marginTop: 16, padding: 14, background: "#f8fafc", borderRadius: 12, border: "1.5px dashed #cbd5e1" }}>
+              <label style={{ fontSize: ".78rem", color: "#475569", fontWeight: 700, display: "block", marginBottom: 6 }}>
+                Atau nominal custom (Rp {CUSTOM_MIN.toLocaleString("id-ID")} - Rp {CUSTOM_MAX.toLocaleString("id-ID")})
+              </label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", background: "#fff", border: "1.5px solid #e2e8ff", borderRadius: 10, padding: "0 12px" }}>
+                  <span style={{ color: "#64748b", fontWeight: 700, fontSize: ".9rem" }}>Rp</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="50000"
+                    value={customAmt ? Number(customAmt).toLocaleString("id-ID") : ""}
+                    onChange={(e) => setCustomAmt(e.target.value.replace(/[^0-9]/g, ""))}
+                    style={{
+                      flex: 1,
+                      padding: "11px 8px",
+                      border: 0,
+                      background: "transparent",
+                      fontFamily: "inherit",
+                      fontSize: ".95rem",
+                      fontWeight: 700,
+                      color: "#0f172a",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    const n = Number(customAmt);
+                    if (!n || n < CUSTOM_MIN) return toast.error(`Minimal Rp ${CUSTOM_MIN.toLocaleString("id-ID")}`);
+                    if (n > CUSTOM_MAX) return toast.error(`Maksimal Rp ${CUSTOM_MAX.toLocaleString("id-ID")}`);
+                    startTopup(n);
+                  }}
+                  disabled={topupLoading || !customAmt}
+                  style={{
+                    padding: "0 20px",
+                    borderRadius: 10,
+                    border: 0,
+                    background: customAmt ? "linear-gradient(135deg,#2970ff,#1a52b8)" : "#cbd5e1",
+                    color: "#fff",
+                    fontFamily: "inherit",
+                    fontSize: ".85rem",
+                    fontWeight: 800,
+                    cursor: (!customAmt || topupLoading) ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Topup
+                </button>
+              </div>
+            </div>
+
             {topupLoading && (
               <div style={{ textAlign: "center", marginTop: 14, fontSize: ".82rem", color: "#2970ff", fontWeight: 600 }}>Membuat transaksi…</div>
             )}
           </div>
-          <style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+          <style>{`
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes popIn { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+          `}</style>
         </div>
       )}
     </>
