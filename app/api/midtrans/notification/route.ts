@@ -27,7 +27,18 @@ export async function POST(req: Request) {
 
     if (!valid) {
       console.warn("Invalid Midtrans signature for order:", payload.order_id);
-      return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+      // Emit diagnostic breadcrumbs (no secrets) so Midtrans notif history shows
+      // which fields were present. The key material stays server-side.
+      return NextResponse.json({
+        error: "Invalid signature",
+        debug: {
+          order_id: payload.order_id,
+          status_code: payload.status_code,
+          gross_amount: payload.gross_amount,
+          got_sig_prefix: typeof payload.signature_key === "string" ? payload.signature_key.slice(0, 8) : null,
+          got_sig_length: typeof payload.signature_key === "string" ? payload.signature_key.length : 0,
+        },
+      }, { status: 403 });
     }
 
     // ─── Map Midtrans status to our status ───
