@@ -5,6 +5,7 @@ import { SmoothScroll } from "@/components/smooth-scroll";
 import { Toaster } from "@/components/ui/sonner";
 import { CSButton } from "@/components/cs-button";
 import { I18nProvider } from "@/components/i18n-provider";
+import { AuthProvider } from "@/components/auth-provider";
 
 export const metadata: Metadata = {
   title: "Skyra Store — Top Up Game Termurah & Terpercaya",
@@ -36,10 +37,12 @@ export default function RootLayout({
       </head>
       <body>
         <I18nProvider>
-          <SmoothScroll />
-          {children}
-          <CSButton />
-          <Toaster />
+          <AuthProvider>
+            <SmoothScroll />
+            {children}
+            <CSButton />
+            <Toaster />
+          </AuthProvider>
         </I18nProvider>
       </body>
     </html>
