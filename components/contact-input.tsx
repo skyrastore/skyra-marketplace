@@ -165,7 +165,7 @@ export function ContactInput({
               <div style={{ padding: 8, borderBottom: "1px solid #f1f5f9", position: "sticky", top: 0, background: "#fff" }}>
                 <input
                   type="text"
-                  placeholder="Search country / code…"
+                  placeholder={t("contact.search_country")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   autoFocus
@@ -183,7 +183,7 @@ export function ContactInput({
                 />
               </div>
               {filtered.length === 0 && (
-                <div style={{ padding: 20, textAlign: "center", color: "#64748b", fontSize: ".85rem" }}>No match</div>
+                <div style={{ padding: 20, textAlign: "center", color: "#64748b", fontSize: ".85rem" }}>{t("contact.no_match")}</div>
               )}
               {filtered.map((c) => (
                 <button

@@ -103,6 +103,10 @@ const T: Dict = {
   "detail.step_phone": { id: "Nomor WhatsApp", en: "WhatsApp Number" },
   "detail.phone_hint": { id: "Wajib. Buat notifikasi + kontak admin kalau ada pending.", en: "Required. For notifications + admin contact if pending." },
   "detail.step_contact": { id: "Nomor WhatsApp / Email", en: "WhatsApp / Email" },
+  "detail.show_pass": { id: "Lihat password", en: "Show password" },
+  "detail.hide_pass": { id: "Sembunyikan password", en: "Hide password" },
+  "contact.search_country": { id: "Cari negara / kode…", en: "Search country / code…" },
+  "contact.no_match": { id: "Tidak ada hasil", en: "No match" },
   "detail.contact_hint": { id: "Wajib. Kami kontak kamu via WhatsApp atau Email kalau ada pending.", en: "Required. We contact you via WhatsApp or Email if there's a pending issue." },
   "detail.qty": { id: "Jumlah Pesanan", en: "Order Quantity" },
   "detail.qty_hint": { id: "Order lebih dari 1 kali? Cukup atur qty — admin proses sekaligus.", en: "Need more than 1? Set qty — admin processes them together." },
@@ -132,7 +136,7 @@ const T: Dict = {
   // ─── Hero Badges ───
   "badge.distributor": { id: "Garansi Aman", en: "Safety Guaranteed" },
   "badge.instant": { id: "Isi Ulang Instan", en: "Instant Top Up" },
-  "badge.manual": { id: "Proses 0-120 menit", en: "0-120 min process" },
+  "badge.manual": { id: "Proses 0-120 Menit", en: "0-120 Minutes Process" },
   "badge.secure": { id: "Pembayaran Aman", en: "Secure Payment" },
 
   // ─── Status Page ───

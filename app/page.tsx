@@ -59,7 +59,8 @@ function SpecialCard({ g, badge }: { g: Game; badge?: "SPECIAL" | "JOKI" }) {
   // (roblox-login vs roblox-username, sky-via-id vs sky-via-login vs sky-via-gift)
   // are visually distinguishable even when sharing cover art.
   const m = g.slug.match(/-via-(\w+)$|-(login|username)$/i);
-  const variant = (m?.[1] || m?.[2] || "").toUpperCase();
+  const rawVariant = (m?.[1] || m?.[2] || "").toLowerCase();
+  const variant = rawVariant ? rawVariant.charAt(0).toUpperCase() + rawVariant.slice(1) : "";
 
   const content = (
     <>
@@ -71,18 +72,18 @@ function SpecialCard({ g, badge }: { g: Game; badge?: "SPECIAL" | "JOKI" }) {
           className="sp-hot-badge"
           style={{
             background:
-              variant === "LOGIN"
+              variant === "Login"
                 ? "linear-gradient(135deg,#f97316,#ef4444)"
-                : variant === "USERNAME"
+                : variant === "Username"
                 ? "linear-gradient(135deg,#10b981,#059669)"
-                : variant === "ID"
+                : variant === "Id"
                 ? "linear-gradient(135deg,#3b82f6,#1d4ed8)"
-                : variant === "GIFT"
+                : variant === "Gift"
                 ? "linear-gradient(135deg,#ec4899,#a855f7)"
                 : "linear-gradient(135deg,#64748b,#475569)",
           }}
         >
-          VIA {variant}
+          Via {variant === "Id" ? "ID" : variant}
         </span>
       )}
       <img

@@ -14,7 +14,8 @@ import { DEFAULT_COUNTRY } from "@/lib/countryCodes";
 import {
   Gift, Calendar, CalendarDays, Moon, Star, Trophy, CreditCard, Package, Gem,
   CheckCircle2, Zap, Lock, Clock, Phone, Ticket, Pencil, ClipboardList,
-  MessageCircle, Flame, ArrowLeft, Minus, Plus, Lightbulb, type LucideIcon,
+  MessageCircle, Flame, ArrowLeft, Minus, Plus, Lightbulb, Eye, EyeOff,
+  type LucideIcon,
 } from "lucide-react";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
@@ -92,6 +93,7 @@ export default function GameDetailPage() {
   const [paying, setPaying] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
+  const [showPass, setShowPass] = useState<Record<string, boolean>>({});
 
   const ADMIN_WA = "6285183346300";
 
@@ -449,24 +451,59 @@ export default function GameDetailPage() {
                       >
                         {f.label} {f.required && <span style={{ color: "#fca5a5" }}>*</span>}
                       </label>
-                      <input
-                        type={f.type || "text"}
-                        placeholder={f.placeholder || ""}
-                        value={formData[f.key] || ""}
-                        onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
-                        style={{
-                          width: "100%",
-                          padding: "12px 14px",
-                          borderRadius: 10,
-                          background: "#f8fafc",
-                          border: "1px solid #e2e8ff",
-                          color: "#0f172a",
-                          fontFamily: "inherit",
-                          fontSize: ".88rem",
-                          fontWeight: 600,
-                          outline: "none",
-                        }}
-                      />
+                      {(() => {
+                        const isPassword = f.type === "password";
+                        const isShown = showPass[f.key];
+                        const effType = isPassword && isShown ? "text" : (f.type || "text");
+                        return (
+                          <div style={{ position: "relative" }}>
+                            <input
+                              type={effType}
+                              placeholder={f.placeholder || ""}
+                              value={formData[f.key] || ""}
+                              onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                              style={{
+                                width: "100%",
+                                padding: isPassword ? "12px 44px 12px 14px" : "12px 14px",
+                                borderRadius: 10,
+                                background: "#f8fafc",
+                                border: "1px solid #e2e8ff",
+                                color: "#0f172a",
+                                fontFamily: "inherit",
+                                fontSize: ".88rem",
+                                fontWeight: 600,
+                                outline: "none",
+                              }}
+                            />
+                            {isPassword && (
+                              <button
+                                type="button"
+                                aria-label={isShown ? t("detail.hide_pass") : t("detail.show_pass")}
+                                title={isShown ? t("detail.hide_pass") : t("detail.show_pass")}
+                                onClick={() => setShowPass((s) => ({ ...s, [f.key]: !s[f.key] }))}
+                                style={{
+                                  position: "absolute",
+                                  right: 8,
+                                  top: "50%",
+                                  transform: "translateY(-50%)",
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 8,
+                                  border: 0,
+                                  background: "transparent",
+                                  color: "#64748b",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                {isShown ? <EyeOff size={16} /> : <Eye size={16} />}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
