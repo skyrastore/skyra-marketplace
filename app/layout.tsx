@@ -10,9 +10,9 @@ import { AuthProvider } from "@/components/auth-provider";
 export const metadata: Metadata = {
   title: "Skyra Store — Top Up Game Termurah & Terpercaya",
   description: "Top up game favoritmu dengan harga paling murah. QRIS, PayPal, Wise. Proses instant, refund guaranteed.",
-  icons: {
-    icon: "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu",
-  },
+  // Next.js auto-detects app/icon.png + app/apple-icon.png (local files)
+  // Removed the lh3.googleusercontent URL since browsers prefer self-hosted
+  // favicons and the Google Drive URL doesn't serve proper image headers.
   openGraph: {
     title: "Skyra Store — Top Up Game Termurah",
     description: "Heart Service · Run Service · Top Up Game — cepat, aman, murah.",
