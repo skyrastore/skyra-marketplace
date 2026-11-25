@@ -9,6 +9,7 @@ import { CATEGORY_ICON_URLS } from "@/lib/categoryIcons";
 import { toast } from "sonner";
 import { useI18n } from "@/components/i18n-provider";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { ContactInput, type ContactValue, toPhoneString } from "@/components/contact-input";
 import { DEFAULT_COUNTRY } from "@/lib/countryCodes";
 import { useAuth } from "@/components/auth-provider";
@@ -1208,6 +1209,7 @@ export default function GameDetailPage() {
           )}
         </div>
       </div>
+      <SiteFooter />
     </>
   );
 }

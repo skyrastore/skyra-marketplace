@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
 import { VoucherCard, type VoucherInfo } from "@/components/voucher-card";
@@ -182,6 +183,7 @@ export default function KuponPage() {
           )}
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

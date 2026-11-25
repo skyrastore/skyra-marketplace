@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { ArrowLeft, Shield, Zap, Gift, type LucideIcon } from "lucide-react";
 
 export const runtime = "edge";
@@ -137,6 +138,7 @@ export default function LoginPage() {
           </p>
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

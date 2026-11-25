@@ -8,6 +8,7 @@ import { Search, ArrowRight, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/components/i18n-provider";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const ORDER_CODE_RE = /^SKY-\d{8}-[A-Z0-9]{4,10}$/i;
@@ -203,6 +204,7 @@ export default function LacakPage() {
           </div>
         </div>
       </div>
+      <SiteFooter />
     </>
   );
 }

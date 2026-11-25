@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { toast } from "sonner";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
 import { Wallet, Plus, ArrowUpRight, ArrowDownRight, Clock, RefreshCw } from "lucide-react";
@@ -315,6 +316,7 @@ export default function SaldoPage() {
           `}</style>
         </div>
       )}
+      <SiteFooter />
     </>
   );
 }

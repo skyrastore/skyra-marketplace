@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const ADMIN_WA = "6285183346300";
@@ -317,6 +318,7 @@ export default function OrderStatusPage() {
           </Link>
         </div>
       </div>
+      <SiteFooter />
     </>
   );
 }

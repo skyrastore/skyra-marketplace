@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/components/auth-provider";
 import { supabase, fmtIDR } from "@/lib/supabase";
 import { Clock, CheckCircle2, XCircle, Hourglass, Settings, Wallet, CreditCard, Package, Ban, ChevronRight, type LucideIcon } from "lucide-react";
@@ -156,6 +157,7 @@ export default function RiwayatPage() {
           )}
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }
