@@ -18,19 +18,21 @@ const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNx
 const ADMIN_WA = "6285183346300";
 const SUPPORT_EMAIL = "support@skyra.id";
 
-// Payment method chips — keeps the footer light (no external logo CDN)
-// Order roughly matches Midtrans's typical payment-channel share in Indonesia.
-const PAYMENT_METHODS: { label: string; bg: string; color: string }[] = [
-  { label: "QRIS",      bg: "#fff", color: "#d32f2f" },
-  { label: "GoPay",     bg: "#00aed6", color: "#fff" },
-  { label: "OVO",       bg: "#4b0082", color: "#fff" },
-  { label: "DANA",      bg: "#118eea", color: "#fff" },
-  { label: "ShopeePay", bg: "#ee4d2d", color: "#fff" },
-  { label: "BCA VA",    bg: "#0060af", color: "#fff" },
-  { label: "Mandiri",   bg: "#003d79", color: "#ffc72c" },
-  { label: "BRI",       bg: "#0a3d8f", color: "#fff" },
-  { label: "BNI",       bg: "#f26522", color: "#fff" },
-  { label: "Visa / MC", bg: "#1a1f71", color: "#fff" },
+// Payment method logos — SVG hosted in /public/payment, sourced from
+// Wikimedia Commons (QRIS, OVO, DANA, BCA, Mandiri, BRI, BNI, Visa,
+// Mastercard, GoPay) and simpleicons.org (ShopeePay).
+const PAYMENT_METHODS: { label: string; src: string }[] = [
+  { label: "QRIS",       src: "/payment/qris.svg" },
+  { label: "GoPay",      src: "/payment/gopay.svg" },
+  { label: "OVO",        src: "/payment/ovo.svg" },
+  { label: "DANA",       src: "/payment/dana.svg" },
+  { label: "ShopeePay",  src: "/payment/shopeepay.svg" },
+  { label: "BCA",        src: "/payment/bca.svg" },
+  { label: "Mandiri",    src: "/payment/mandiri.svg" },
+  { label: "BRI",        src: "/payment/bri.svg" },
+  { label: "BNI",        src: "/payment/bni.svg" },
+  { label: "Visa",       src: "/payment/visa.svg" },
+  { label: "Mastercard", src: "/payment/mastercard.svg" },
 ];
 
 export function SiteFooter() {
@@ -68,25 +70,29 @@ export function SiteFooter() {
           <div style={{ fontSize: ".7rem", fontWeight: 800, color: "rgba(255,255,255,.55)", letterSpacing: ".15em", marginBottom: 10, textAlign: "center" }}>
             METODE PEMBAYARAN
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", alignItems: "center" }}>
             {PAYMENT_METHODS.map((pm) => (
               <span
                 key={pm.label}
+                title={pm.label}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  padding: "6px 12px",
+                  justifyContent: "center",
+                  height: 36,
+                  minWidth: 56,
+                  padding: "6px 10px",
                   borderRadius: 7,
-                  background: pm.bg,
-                  color: pm.color,
-                  fontSize: ".72rem",
-                  fontWeight: 800,
-                  letterSpacing: ".04em",
-                  boxShadow: "0 2px 8px rgba(0,0,0,.2)",
-                  border: pm.bg === "#fff" ? "1px solid #e2e8ff" : "none",
+                  background: "#fff",
+                  boxShadow: "0 2px 8px rgba(0,0,0,.18)",
+                  border: "1px solid rgba(255,255,255,.08)",
                 }}
               >
-                {pm.label}
+                <img
+                  src={pm.src}
+                  alt={pm.label}
+                  style={{ maxHeight: 22, maxWidth: 60, objectFit: "contain", display: "block" }}
+                />
               </span>
             ))}
           </div>
