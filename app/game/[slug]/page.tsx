@@ -11,12 +11,26 @@ import { useI18n } from "@/components/i18n-provider";
 import { SiteNav } from "@/components/site-nav";
 import { ContactInput, type ContactValue, toPhoneString } from "@/components/contact-input";
 import { DEFAULT_COUNTRY } from "@/lib/countryCodes";
+import { useAuth } from "@/components/auth-provider";
 import {
   Gift, Calendar, CalendarDays, Moon, Star, Trophy, CreditCard, Package, Gem,
   CheckCircle2, Zap, Lock, Clock, Phone, Ticket, Pencil, ClipboardList,
-  MessageCircle, Flame, ArrowLeft, Minus, Plus, Lightbulb, Eye, EyeOff,
+  MessageCircle, Flame, ArrowLeft, Minus, Plus, Lightbulb, Eye, EyeOff, Wallet,
   type LucideIcon,
 } from "lucide-react";
+
+type ClaimedVoucher = {
+  voucher_code: string;
+  voucher: {
+    code: string;
+    title: string | null;
+    description: string | null;
+    discount_type: string;
+    discount_value: number;
+    max_discount_idr: number | null;
+    min_purchase_idr: number;
+  };
+};
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 const SNAP_JS_URL =
@@ -67,10 +81,14 @@ export default function GameDetailPage() {
   const { t } = useI18n();
   const [game, setGame] = useState<Game | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const { user } = useAuth();
   const [selected, setSelected] = useState<Product | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [contact, setContact] = useState<ContactValue>({ kind: "phone", phone: "", country: DEFAULT_COUNTRY });
   const [notes, setNotes] = useState("");
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [claimedVouchers, setClaimedVouchers] = useState<ClaimedVoucher[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<"midtrans" | "wallet">("midtrans");
   // Derived string for display + API + WA fallback
   const phoneString = contact.kind === "phone" ? toPhoneString(contact) : "";
   const emailString = contact.kind === "email" ? contact.email : "";
@@ -107,6 +125,21 @@ export default function GameDetailPage() {
     s.setAttribute("data-client-key", MIDTRANS_CLIENT_KEY);
     document.body.appendChild(s);
   }, []);
+
+  // ─── Fetch wallet balance + claimed vouchers for signed-in user ───
+  useEffect(() => {
+    if (!user) { setWalletBalance(null); setClaimedVouchers([]); return; }
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = { Authorization: `Bearer ${session?.access_token ?? ""}` };
+      const [w, v] = await Promise.all([
+        fetch("/api/wallet", { headers }).then((r) => r.json()),
+        fetch("/api/vouchers/mine", { headers }).then((r) => r.json()),
+      ]);
+      setWalletBalance(Number(w.balance_idr ?? 0));
+      setClaimedVouchers((v.active ?? []) as ClaimedVoucher[]);
+    })();
+  }, [user]);
 
   const checkVoucher = async () => {
     const code = voucherCode.trim().toUpperCase();
@@ -245,18 +278,31 @@ export default function GameDetailPage() {
     return null;
   };
 
-  // ─── Primary checkout: Midtrans Snap ───
+  // ─── Primary checkout: Midtrans Snap OR Wallet ───
   const handlePayNow = async () => {
     const err = validateInputs();
     if (err) { toast.warning(err); return; }
     if (paying) return;
-    setPaying(true);
 
+    // Wallet-specific guards (only if user chose wallet)
+    if (paymentMethod === "wallet") {
+      if (!user) { toast.warning("Login dulu buat bayar pakai saldo"); return; }
+      if (walletBalance === null || walletBalance < finalPrice) {
+        toast.error("Saldo kamu kurang", { description: `Butuh ${fmtIDR(finalPrice)} · Topup di /saldo` });
+        return;
+      }
+    }
+
+    setPaying(true);
     const loadingToast = toast.loading(t("toast.creating_order"));
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
       const res = await fetch("/api/orders/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           gameSlug: game!.slug,
           productId: selected!.id,
@@ -266,13 +312,27 @@ export default function GameDetailPage() {
           notes: notes || undefined,
           voucherCode: voucherApplied?.code || undefined,
           qty: effectiveQty,
+          useWallet: paymentMethod === "wallet",
         }),
       });
 
       const data = await res.json();
       toast.dismiss(loadingToast);
 
-      if (!res.ok || !data.snapToken) {
+      if (!res.ok) {
+        toast.error(t("toast.order_create_fail_t"), { description: data.error || t("toast.order_create_fail_d") });
+        return;
+      }
+
+      // ─── Wallet branch: order is already paid, bounce to status page ───
+      if (data.paid) {
+        toast.success(t("toast.payment_success"), { description: `Saldo tersisa: ${fmtIDR(data.newBalance ?? 0)}` });
+        window.location.href = `/order/${data.orderCode}?status=success`;
+        return;
+      }
+
+      // ─── Midtrans branch ───
+      if (!data.snapToken) {
         toast.error(t("toast.order_create_fail_t"), { description: data.error || t("toast.order_create_fail_d") });
         return;
       }
@@ -296,9 +356,7 @@ export default function GameDetailPage() {
           console.error("Snap error:", e);
           toast.error(t("toast.payment_fail_t"), { description: t("toast.payment_fail_d") });
         },
-        onClose: () => {
-          // user closed popup — order tetap tersimpan sbg pending
-        },
+        onClose: () => { /* user closed popup — order tetap pending */ },
       });
     } catch (e) {
       console.error(e);
@@ -789,6 +847,52 @@ export default function GameDetailPage() {
               <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6 }}>
                 <Ticket size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} /> {t("detail.voucher")} <span style={{ fontSize: ".7rem", opacity: .7, fontFamily: "inherit" }}>({t("detail.optional")})</span>
               </h3>
+
+              {/* Claimed voucher picker (logged-in users with claims) */}
+              {user && claimedVouchers.length > 0 && !voucherApplied && (
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: ".7rem", color: "#64748b", fontWeight: 700, display: "block", marginBottom: 4 }}>
+                    Voucher Milikku
+                  </label>
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      if (!e.target.value) return;
+                      setVoucherCode(e.target.value);
+                      // Trigger validation after state update
+                      setTimeout(() => checkVoucher(), 0);
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      background: "#faf5ff",
+                      border: "1.5px solid rgba(168,85,247,.35)",
+                      color: "#0f172a",
+                      fontFamily: "inherit",
+                      fontSize: ".85rem",
+                      fontWeight: 700,
+                      outline: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <option value="">— Pilih dari {claimedVouchers.length} voucher —</option>
+                    {claimedVouchers.map((c) => {
+                      const v = c.voucher;
+                      const label = v.discount_type === "percentage"
+                        ? `${v.discount_value}% OFF`
+                        : `Rp ${Number(v.discount_value).toLocaleString("id-ID")}`;
+                      const minLabel = v.min_purchase_idr ? ` · min ${fmtIDR(v.min_purchase_idr)}` : "";
+                      return (
+                        <option key={c.voucher_code} value={c.voucher_code}>
+                          {v.code} — {label}{minLabel}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   type="text"
@@ -966,7 +1070,53 @@ export default function GameDetailPage() {
                 <span style={{ color: "#2272dc", fontSize: "1.3rem" }}>{fmtIDR(finalPrice)}</span>
               </div>
 
-              {/* Primary: Midtrans Snap */}
+              {/* Payment Method Selector — only for signed-in users with a wallet */}
+              {user && walletBalance !== null && (
+                <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("midtrans")}
+                    style={{
+                      padding: "11px 10px",
+                      borderRadius: 10,
+                      border: paymentMethod === "midtrans" ? "2px solid #2272dc" : "1.5px solid #e2e8ff",
+                      background: paymentMethod === "midtrans" ? "#eff6ff" : "#fff",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#1a52b8", fontWeight: 800, fontSize: ".8rem" }}>
+                      <CreditCard size={14} /> QRIS / Bank / E-Wallet
+                    </div>
+                    <div style={{ fontSize: ".68rem", color: "#64748b", marginTop: 2, fontWeight: 600 }}>Bayar via Midtrans</div>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={walletBalance < finalPrice}
+                    onClick={() => walletBalance >= finalPrice && setPaymentMethod("wallet")}
+                    style={{
+                      padding: "11px 10px",
+                      borderRadius: 10,
+                      border: paymentMethod === "wallet" ? "2px solid #10b981" : "1.5px solid #e2e8ff",
+                      background: paymentMethod === "wallet" ? "#ecfdf5" : "#fff",
+                      cursor: walletBalance < finalPrice ? "not-allowed" : "pointer",
+                      textAlign: "left",
+                      opacity: walletBalance < finalPrice ? 0.5 : 1,
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#059669", fontWeight: 800, fontSize: ".8rem" }}>
+                      <Wallet size={14} /> Saldo Skyra
+                    </div>
+                    <div style={{ fontSize: ".68rem", color: walletBalance < finalPrice ? "#ef4444" : "#64748b", marginTop: 2, fontWeight: 600 }}>
+                      {fmtIDR(walletBalance)} {walletBalance < finalPrice && "· kurang"}
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {/* Primary: pay button (Midtrans or Wallet) */}
               <button
                 onClick={handlePayNow}
                 disabled={paying || !selected}
