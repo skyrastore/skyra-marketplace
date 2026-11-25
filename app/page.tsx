@@ -239,7 +239,7 @@ export default function Home() {
         <div className="search-bar">
           <span className="search-icon">🔍</span>
           <input
-            placeholder="Cari game, voucher, atau jasa..."
+            placeholder={t("search.placeholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onFocus={() => setSearchFocus(true)}
@@ -299,7 +299,7 @@ export default function Home() {
                 );
               })}
               {filteredGames.length > 8 && (
-                <div className="sd-more">+{filteredGames.length - 8} hasil lain, scroll down ↓</div>
+                <div className="sd-more">+{filteredGames.length - 8} {t("search.more")} ↓</div>
               )}
             </div>
           )}
@@ -350,7 +350,7 @@ export default function Home() {
               <div className="slide slide-default">
                 <div className="slide-content">
                   <div className="slide-brand">SKYRA STORE</div>
-                  <div className="slide-title">Top Up Game Favoritmu</div>
+                  <div className="slide-title">{t("slide.default_title")}</div>
                   <div className="slide-sub">Hemat · Cepat · Aman. QRIS, PayPal, Wise — proses instant.</div>
                 </div>
                 <div className="slide-art"><Gamepad2 size={110} /></div>
@@ -402,7 +402,7 @@ export default function Home() {
             <h2>
               <span className="ic">🔍</span> Hasil pencarian: &quot;{search}&quot;
             </h2>
-            <div className="meta">{filteredGames.length} game</div>
+            <div className="meta">{filteredGames.length} {t("sec.game_count")}</div>
           </div>
           {filteredGames.length === 0 ? (
             <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,.7)" }}>
@@ -516,7 +516,7 @@ export default function Home() {
                   })()}
                   {t(CATEGORIES.find((c) => c.key === cat)?.tKey || "cat.all")}
                 </h2>
-                <div className="meta">{filteredGames.length} game</div>
+                <div className="meta">{filteredGames.length} {t("sec.game_count")}</div>
               </div>
               {filteredGames.length === 0 ? (
                 <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,.7)" }}>

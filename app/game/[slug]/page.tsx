@@ -108,26 +108,26 @@ export default function GameDetailPage() {
         .eq("is_active", true)
         .maybeSingle();
       if (!data) {
-        toast.error("Kode voucher tidak ditemukan", { description: "Cek ulang code atau mungkin sudah expired." });
+        toast.error(t("toast.voucher_not_found_t"), { description: t("toast.voucher_not_found_d") });
         return;
       }
       if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        toast.error("Voucher sudah expired");
+        toast.error(t("toast.voucher_expired"));
         return;
       }
       if (data.max_uses && data.used_count >= data.max_uses) {
-        toast.error("Voucher sudah habis terpakai");
+        toast.error(t("toast.voucher_used_up"));
         return;
       }
       if (!selected) {
-        toast.warning("Pilih paket dulu sebelum apply voucher");
+        toast.warning(t("toast.voucher_pick_pack"));
         return;
       }
       if (selected.price_idr < data.min_purchase_idr) {
-        toast.error(`Min belanja untuk voucher ini`, { description: fmtIDR(data.min_purchase_idr) });
+        toast.error(t("toast.voucher_min_buy_t"), { description: fmtIDR(data.min_purchase_idr) });
         return;
       }
-      toast.success(`Voucher ${data.code} diterapkan!`, { description: data.description });
+      toast.success(`${t("toast.voucher_applied_t")} (${data.code})`, { description: data.description });
       setVoucherApplied({
         code: data.code,
         discount_type: data.discount_type,
@@ -224,10 +224,10 @@ export default function GameDetailPage() {
 
   // ─── Validate order inputs ───
   const validateInputs = (): string | null => {
-    if (!selected) return "Pilih paket dulu";
-    if (!phone || phone.length < 9) return "Nomor WhatsApp wajib (min 9 digit)";
+    if (!selected) return t("validate.pick_pack");
+    if (!phone || phone.length < 9) return t("validate.phone_required");
     for (const f of inputFields) {
-      if (f.required && !formData[f.key]) return `Isi field ${f.label}`;
+      if (f.required && !formData[f.key]) return `${t("validate.field_required")} ${f.label}`;
     }
     return null;
   };
@@ -239,7 +239,7 @@ export default function GameDetailPage() {
     if (paying) return;
     setPaying(true);
 
-    const loadingToast = toast.loading("Membuat order…");
+    const loadingToast = toast.loading(t("toast.creating_order"));
     try {
       const res = await fetch("/api/orders/create", {
         method: "POST",
@@ -259,28 +259,28 @@ export default function GameDetailPage() {
       toast.dismiss(loadingToast);
 
       if (!res.ok || !data.snapToken) {
-        toast.error("Gagal buat order", { description: data.error || "Coba lagi dalam beberapa saat." });
+        toast.error(t("toast.order_create_fail_t"), { description: data.error || t("toast.order_create_fail_d") });
         return;
       }
 
       const snap = (window as SnapWindow).snap;
       if (!snap) {
-        toast.error("Payment belum siap", { description: "Refresh halaman & coba lagi." });
+        toast.error(t("toast.payment_not_ready_t"), { description: t("toast.payment_not_ready_d") });
         return;
       }
 
       snap.pay(data.snapToken, {
         onSuccess: () => {
-          toast.success("Pembayaran berhasil!");
+          toast.success(t("toast.payment_success"));
           window.location.href = `/order/${data.orderCode}?status=success`;
         },
         onPending: () => {
-          toast.info("Pembayaran pending — tunggu konfirmasi");
+          toast.info(t("toast.payment_pending"));
           window.location.href = `/order/${data.orderCode}?status=pending`;
         },
         onError: (e) => {
           console.error("Snap error:", e);
-          toast.error("Pembayaran gagal", { description: "Coba lagi atau pakai WhatsApp fallback." });
+          toast.error(t("toast.payment_fail_t"), { description: t("toast.payment_fail_d") });
         },
         onClose: () => {
           // user closed popup — order tetap tersimpan sbg pending
@@ -289,7 +289,7 @@ export default function GameDetailPage() {
     } catch (e) {
       console.error(e);
       toast.dismiss(loadingToast);
-      toast.error("Error jaringan", { description: "Cek koneksi & coba lagi." });
+      toast.error(t("toast.network_err_t"), { description: t("toast.network_err_d") });
     } finally {
       setPaying(false);
     }
@@ -307,7 +307,7 @@ export default function GameDetailPage() {
     <>
       <SiteNav />
 
-      <div style={{ maxWidth: 1100, margin: "20px auto 60px", padding: "0 24px", position: "relative", zIndex: 1 }}>
+      <div className="game-detail-wrap">
         {/* Game Hero + badges inline */}
         {(() => {
           const hasUniplayProduct = products.some((p) => p.supplier === "uniplay");
@@ -779,7 +779,7 @@ export default function GameDetailPage() {
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   type="text"
-                  placeholder="Masukkan kode voucher"
+                  placeholder={t("ph.voucher")}
                   value={voucherCode}
                   onChange={(e) => {
                     setVoucherCode(e.target.value.toUpperCase());
@@ -877,7 +877,7 @@ export default function GameDetailPage() {
                 Contoh: proses malam ya, hati2 jangan ganti password, dsb.
               </div>
               <textarea
-                placeholder="Tulis catatan untuk admin..."
+                placeholder={t("ph.notes")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}

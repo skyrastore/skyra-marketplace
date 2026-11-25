@@ -24,12 +24,12 @@ export default function LacakPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!normalized) {
-      toast.warning("Masukkan kode order dulu ya");
+      toast.warning(t("track.toast_empty"));
       return;
     }
     if (!isValid) {
-      toast.error("Format kode salah", {
-        description: "Contoh: SKY-20261125-A3F7B2",
+      toast.error(t("track.toast_bad_format_t"), {
+        description: t("track.toast_bad_format_d"),
       });
       return;
     }

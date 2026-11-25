@@ -281,10 +281,22 @@ body{
 }
 
 /* ─── GAME DETAIL PAGE RESPONSIVE ─── */
-.game-detail-wrap{max-width:1100px;margin:20px auto 60px;padding:0 24px;position:relative;z-index:1}
+.game-detail-wrap{max-width:1100px;margin:20px auto 60px;padding:0 24px;position:relative;z-index:1;width:100%;box-sizing:border-box}
 .game-detail-grid{display:grid;gap:20px;grid-template-columns:1fr}
+@media(max-width:860px){
+  .game-detail-wrap{padding:0 16px}
+}
 @media(max-width:640px){
-  .game-detail-wrap{padding:0 14px}
+  .game-detail-wrap{padding:0 12px;margin:14px auto 60px}
+}
+/* Shrink card internal padding + heading size on mobile so forms aren't a wall */
+@media(max-width:640px){
+  .game-detail-wrap h3{font-size:1rem !important}
+  .game-detail-wrap input[type="text"],
+  .game-detail-wrap input[type="tel"],
+  .game-detail-wrap input[type="email"],
+  .game-detail-wrap input[type="password"],
+  .game-detail-wrap textarea{padding:10px 12px !important;font-size:.9rem !important}
 }
 
 /* ═══════════ HERO CAROUSEL ═══════════ */

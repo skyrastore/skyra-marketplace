@@ -54,8 +54,48 @@ const T: Dict = {
   "card.external": { id: "External", en: "External" },
 
   // ─── Search ───
-  "search.placeholder": { id: "Cari game, voucher, atau kategori…", en: "Search games, vouchers, or category…" },
+  "search.placeholder": { id: "Cari game, voucher, atau jasa…", en: "Search games, vouchers, or services…" },
   "search.empty": { id: "Ga nemu nih. Coba keyword lain?", en: "Nothing found. Try another keyword?" },
+  "search.more": { id: "hasil lain, scroll down", en: "more results, scroll down" },
+
+  // ─── Carousel fallback ───
+  "slide.default_title": { id: "Top Up Game Favoritmu", en: "Top Up Your Favorite Game" },
+  "slide.default_sub": { id: "Instant, aman, harga termurah", en: "Instant, secure, best prices" },
+
+  // ─── Toast messages (game detail checkout) ───
+  "toast.voucher_not_found_t": { id: "Kode voucher tidak ditemukan", en: "Voucher code not found" },
+  "toast.voucher_not_found_d": { id: "Cek ulang code atau mungkin sudah expired.", en: "Double-check the code or it may be expired." },
+  "toast.voucher_expired": { id: "Voucher sudah expired", en: "Voucher expired" },
+  "toast.voucher_used_up": { id: "Voucher sudah habis terpakai", en: "Voucher has been used up" },
+  "toast.voucher_pick_pack": { id: "Pilih paket dulu sebelum apply voucher", en: "Select a package before applying voucher" },
+  "toast.voucher_min_buy_t": { id: "Min belanja untuk voucher ini", en: "Minimum purchase for this voucher" },
+  "toast.voucher_applied_t": { id: "Voucher diterapkan!", en: "Voucher applied!" },
+  "toast.order_create_fail_t": { id: "Gagal buat order", en: "Failed to create order" },
+  "toast.order_create_fail_d": { id: "Coba lagi dalam beberapa saat.", en: "Try again in a moment." },
+  "toast.payment_not_ready_t": { id: "Payment belum siap", en: "Payment not ready yet" },
+  "toast.payment_not_ready_d": { id: "Refresh halaman & coba lagi.", en: "Refresh page & try again." },
+  "toast.payment_success": { id: "Pembayaran berhasil!", en: "Payment successful!" },
+  "toast.payment_pending": { id: "Pembayaran pending — tunggu konfirmasi", en: "Payment pending — awaiting confirmation" },
+  "toast.payment_fail_t": { id: "Pembayaran gagal", en: "Payment failed" },
+  "toast.payment_fail_d": { id: "Coba lagi atau pakai WhatsApp fallback.", en: "Try again or use WhatsApp fallback." },
+  "toast.network_err_t": { id: "Error jaringan", en: "Network error" },
+  "toast.network_err_d": { id: "Cek koneksi & coba lagi.", en: "Check connection & retry." },
+  "toast.creating_order": { id: "Membuat order…", en: "Creating order…" },
+
+  // ─── Validation ───
+  "validate.pick_pack": { id: "Pilih paket dulu", en: "Select a package first" },
+  "validate.phone_required": { id: "Nomor WhatsApp wajib (min 9 digit)", en: "WhatsApp number required (min 9 digits)" },
+  "validate.field_required": { id: "Isi field", en: "Please fill field" },
+
+  // ─── Form placeholders ───
+  "ph.voucher": { id: "Masukkan kode voucher", en: "Enter voucher code" },
+  "ph.notes": { id: "Tulis catatan untuk admin...", en: "Write notes for admin..." },
+  "ph.phone": { id: "08123456789", en: "08123456789" },
+
+  // ─── Lacak toasts ───
+  "track.toast_empty": { id: "Masukkan kode order dulu ya", en: "Please enter an order code" },
+  "track.toast_bad_format_t": { id: "Format kode salah", en: "Wrong format" },
+  "track.toast_bad_format_d": { id: "Contoh: SKY-20261125-A3F7B2", en: "Example: SKY-20261125-A3F7B2" },
 
   // ─── Game Detail ───
   "detail.step_input": { id: "Masukkan Data Akun", en: "Enter Account Data" },
