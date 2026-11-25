@@ -115,8 +115,11 @@ async function handleWalletTopup(payload: Record<string, unknown>, newStatus: st
     .maybeSingle();
 
   if (fetchErr || !topup) {
-    console.warn("Wallet topup not found:", midtransOrderId);
-    return NextResponse.json({ error: "Topup not found" }, { status: 404 });
+    // Return 200 so Midtrans stops retrying this orphan. The topup row
+    // predates the wallet_topups table (migration 24) or was wiped manually.
+    // Nothing to credit — just acknowledge.
+    console.warn("Wallet topup not found (acked to stop retry):", midtransOrderId);
+    return NextResponse.json({ ok: true, info: "topup row not found — acked" });
   }
 
   if (topup.status === "paid") {
