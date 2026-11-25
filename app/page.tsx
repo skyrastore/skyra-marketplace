@@ -534,24 +534,6 @@ export default function Home() {
         </>
       )}
 
-      {/* ═══════════ FEATURES ═══════════ */}
-      <div className="feats">
-        {[
-          { Ic: Zap, tKey: "feat.instant" },
-          { Ic: Wallet, tKey: "feat.cheap" },
-          { Ic: ShieldCheck, tKey: "feat.refund" },
-          { Ic: Star, tKey: "feat.rating" },
-        ].map((f, i) => (
-          <div key={i} className="feat">
-            <div className="feat-ic"><f.Ic size={22} strokeWidth={2.2} /></div>
-            <div>
-              <div className="feat-t">{t(`${f.tKey}.t`)}</div>
-              <div className="feat-d">{t(`${f.tKey}.d`)}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
       </main>
 
       <SiteFooter />

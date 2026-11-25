@@ -60,7 +60,7 @@ export function SiteFooter() {
           <TrustItem Icon={Zap} title="Instant Delivery" sub="UniPlay auto <5 menit" />
           <TrustItem Icon={Shield} title="Pembayaran Aman" sub="Midtrans · Enkripsi SSL" />
           <TrustItem Icon={Undo2} title="Refund 100%" sub="Gagal = uang balik" />
-          <TrustItem Icon={Clock} title="24/7 Customer Service" sub="Response < 5 menit" />
+          <TrustItem Icon={Clock} title="24/7 Support" sub="Response < 5 menit" />
         </div>
 
         {/* Payment methods strip */}
