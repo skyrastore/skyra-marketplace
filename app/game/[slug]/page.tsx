@@ -563,8 +563,13 @@ export default function GameDetailPage() {
                   boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                 }}
               >
-                <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
-                  1. {t("detail.step_input")}
+                <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span>1. {t("detail.step_input")}</span>
+                  {inputFields.some((f) => f.required) && (
+                    <span style={{ fontSize: ".65rem", fontWeight: 700, color: "#dc2626", background: "#fee2e2", padding: "2px 8px", borderRadius: 6, letterSpacing: ".02em" }}>
+                      WAJIB DIISI
+                    </span>
+                  )}
                 </h3>
                 <div style={{ display: "grid", gap: 12 }}>
                   {inputFields.map((f) => (
@@ -572,7 +577,12 @@ export default function GameDetailPage() {
                       <label
                         style={{ display: "block", fontSize: ".78rem", fontWeight: 700, marginBottom: 6, color: "#334155" }}
                       >
-                        {f.label} {f.required && <span style={{ color: "#fca5a5" }}>*</span>}
+                        {f.label}
+                        {f.required && (
+                          <span style={{ color: "#dc2626", marginLeft: 6, fontSize: ".68rem", fontWeight: 800 }}>
+                            * wajib
+                          </span>
+                        )}
                       </label>
                       {(() => {
                         const isPassword = f.type === "password";
@@ -667,8 +677,11 @@ export default function GameDetailPage() {
                     boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                   }}
                 >
-                  <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
-                    {inputFields.length > 0 ? "2." : "1."} {t("detail.step_pack")}
+                  <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <span>{inputFields.length > 0 ? "2." : "1."} {t("detail.step_pack")}</span>
+                    <span style={{ fontSize: ".65rem", fontWeight: 700, color: "#dc2626", background: "#fee2e2", padding: "2px 8px", borderRadius: 6, letterSpacing: ".02em" }}>
+                      WAJIB DIISI
+                    </span>
                   </h3>
 
                   {/* Category filter pills — only show if 2+ categories */}
@@ -1099,8 +1112,10 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* Summary: appear after selected + phone valid */}
-          {selected && contactValid && (
+          {/* Summary: appear ONLY after ALL required inputs are valid
+              (selected pack + contact + every required input_field). Prevents
+              premature display with half-filled form + a misleading VIP line. */}
+          {selected && contactValid && inputFields.every((f) => !f.required || formData[f.key]?.trim()) && (
             <div
               style={{
                 padding: 22,

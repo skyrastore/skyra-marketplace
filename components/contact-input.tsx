@@ -39,8 +39,11 @@ export function ContactInput({
         marginBottom: 20,
       }}
     >
-      <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+      <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
         <Phone size={14} /> {t("detail.step_contact")}
+        <span style={{ fontSize: ".65rem", fontWeight: 700, color: "#dc2626", background: "#fee2e2", padding: "2px 8px", borderRadius: 6, letterSpacing: ".02em" }}>
+          WAJIB DIISI
+        </span>
       </h3>
       <div style={{ fontSize: ".78rem", color: "#64748b", marginBottom: 12, fontWeight: 600 }}>
         {t("detail.contact_hint")}
