@@ -563,11 +563,8 @@ export default function GameDetailPage() {
                   boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                 }}
               >
-                <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14 }}>
                   1. {t("detail.step_input")}
-                  {inputFields.some((f) => f.required) && (
-                    <span style={{ color: "#dc2626", fontSize: ".72rem", fontWeight: 700, marginLeft: 2 }}>*wajib</span>
-                  )}
                 </h3>
                 <div style={{ display: "grid", gap: 12 }}>
                   {inputFields.map((f) => (
@@ -677,7 +674,7 @@ export default function GameDetailPage() {
                 >
                   <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
                     {inputFields.length > 0 ? "2." : "1."} {t("detail.step_pack")}
-                    <span style={{ color: "#dc2626", fontSize: ".72rem", fontWeight: 700, marginLeft: 2 }}>*wajib</span>
+                    <span style={{ color: "#dc2626", fontSize: ".68rem", fontWeight: 800 }}>*wajib</span>
                   </h3>
 
                   {/* Category filter pills — only show if 2+ categories */}

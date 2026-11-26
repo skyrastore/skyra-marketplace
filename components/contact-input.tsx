@@ -41,9 +41,8 @@ export function ContactInput({
     >
       <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
         <Phone size={14} /> {t("detail.step_contact")}
-        <span style={{ color: "#dc2626", fontSize: ".72rem", fontWeight: 700, marginLeft: 2 }}>*wajib</span>
       </h3>
-      <div style={{ fontSize: ".78rem", color: "#64748b", marginBottom: 12, fontWeight: 600 }}>
+      <div style={{ fontSize: ".78rem", color: "#dc2626", marginBottom: 12, fontWeight: 700 }}>
         {t("detail.contact_hint")}
       </div>
 
