@@ -9,8 +9,67 @@ import { PaginatedGrid } from "@/components/paginated-grid";
 import {
   Gamepad2, Smartphone, Ticket, Zap, Swords, Sparkles, Star, Flame, Target,
   Wallet, ShieldCheck, Clock, ArrowUpRight, Search as SearchIcon,
+  Monitor, Gem, CreditCard, PlayCircle,
   type LucideIcon,
 } from "lucide-react";
+
+// Sub-grup di dalam kategori "voucher" (homepage split 4 section)
+const VOUCHER_GROUPS: { key: string; tKey: string; Icon: LucideIcon; slugs: string[] }[] = [
+  {
+    key: "pc_games",
+    tKey: "sec.pc_games",
+    Icon: Monitor,
+    slugs: [
+      "voucher-diablo-iv",
+      "voucher-delta-force-delta-coin-redeem-code",
+      "voucher-resident-evil-requiem-cd-keys",
+    ],
+  },
+  {
+    key: "ingame_voucher",
+    tKey: "sec.ingame_voucher",
+    Icon: Gem,
+    slugs: [
+      "voucher-blizzard-gift-card",
+      "voucher-cherry-credits",
+      "voucher-fola-play",
+      "voucher-garena-shell",
+      "voucher-point-blank-cash-voucher",
+      "voucher-roblox",
+      "voucher-voucher-free-fire-global",
+      "voucher-voucher-megaxus",
+      "voucher-voucher-pubg-mobile",
+      "voucher-voucher-valorant",
+      "voucher-wave-game",
+    ],
+  },
+  {
+    key: "platform_voucher",
+    tKey: "sec.platform_voucher",
+    Icon: CreditCard,
+    slugs: [
+      "voucher-psn-money-voucher-id",
+      "voucher-steam-wallet",
+      "voucher-voucher-google-play",
+      "voucher-voucher-razer-gold",
+    ],
+  },
+  {
+    key: "app_voucher",
+    tKey: "sec.app_voucher",
+    Icon: PlayCircle,
+    slugs: [
+      "voucher-bstation",
+      "voucher-dramabox-voucher",
+      "voucher-terabox-gift-card",
+      "voucher-tiktok-koin-gift-card",
+      "voucher-tinder-voucher",
+      "voucher-turbo-vpn",
+      "voucher-vidio",
+      "voucher-voucher-wetv-vip",
+    ],
+  },
+];
 
 const LOGO_URL = "https://lh3.googleusercontent.com/d/1HmBuyY8D5ccBUUAP-GsCuiTNxpxsaDsu";
 
@@ -477,21 +536,25 @@ export default function Home() {
                 />
               </div>
 
-              {/* Voucher section */}
-              {games.filter((g) => g.category === "voucher").length > 0 && (
-                <div className="section">
-                  <div className="sec-head">
-                    <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Ticket size={22} /> {t("sec.voucher_pc")}
-                    </h2>
+              {/* Voucher sub-sections (split 4: PC Games / In-Game / Platform / App) */}
+              {VOUCHER_GROUPS.map((group) => {
+                const groupGames = games.filter((g) => group.slugs.includes(g.slug));
+                if (!groupGames.length) return null;
+                return (
+                  <div key={group.key} className="section">
+                    <div className="sec-head">
+                      <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <group.Icon size={22} /> {t(group.tKey)}
+                      </h2>
+                    </div>
+                    <PaginatedGrid
+                      items={groupGames}
+                      keyFn={(g) => g.id}
+                      renderItem={(g) => <GameCard g={g} />}
+                    />
                   </div>
-                  <PaginatedGrid
-                    items={games.filter((g) => g.category === "voucher")}
-                    keyFn={(g) => g.id}
-                    renderItem={(g) => <GameCard g={g} />}
-                  />
-                </div>
-              )}
+                );
+              })}
             </>
           ) : cat !== "joki" ? (
             /* Specific category (mobile / voucher / ppob) - flat grid */

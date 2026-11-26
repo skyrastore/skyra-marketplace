@@ -28,6 +28,10 @@ const T: Record<string, string> = {
   "sec.personal_service": "Jasa Pribadi",
   "sec.all_mobile": "Semua Mobile Game",
   "sec.voucher_pc": "Voucher & PC Games",
+  "sec.pc_games": "PC Games",
+  "sec.ingame_voucher": "In-Game Voucher",
+  "sec.platform_voucher": "Platform & Wallet",
+  "sec.app_voucher": "App & Streaming",
   "sec.game_count": "game",
 
   // ─── Features Grid ───
