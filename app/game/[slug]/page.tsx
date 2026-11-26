@@ -41,7 +41,7 @@ const SNAP_JS_URL =
     : "https://app.sandbox.midtrans.com/snap/snap.js";
 const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "";
 
-type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean; hint?: string; inputmode?: "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search" };
+type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean; hint?: string; inputmode?: "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search"; options?: string[] };
 
 // ─────────────────────────────────────────────
 // Product category classifier (name-based)
@@ -584,27 +584,50 @@ export default function GameDetailPage() {
                         const isPassword = f.type === "password";
                         const isShown = showPass[f.key];
                         const effType = isPassword && isShown ? "text" : (f.type || "text");
+                        const hasOptions = Array.isArray(f.options) && f.options.length > 0;
+                        const sharedStyle = {
+                          width: "100%",
+                          padding: isPassword ? "12px 44px 12px 14px" : "12px 14px",
+                          borderRadius: 10,
+                          background: "#f8fafc",
+                          border: "1px solid #e2e8ff",
+                          color: "#0f172a",
+                          fontFamily: "inherit",
+                          fontSize: ".88rem",
+                          fontWeight: 600,
+                          outline: "none",
+                        } as const;
                         return (
                           <div style={{ position: "relative" }}>
+                            {hasOptions ? (
+                              <select
+                                value={formData[f.key] || ""}
+                                onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                                style={{
+                                  ...sharedStyle,
+                                  appearance: "none",
+                                  backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")",
+                                  backgroundRepeat: "no-repeat",
+                                  backgroundPosition: "right 14px center",
+                                  paddingRight: 36,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <option value="" disabled>{f.placeholder || "Pilih salah satu..."}</option>
+                                {f.options!.map((opt) => (
+                                  <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                              </select>
+                            ) : (
                             <input
                               type={effType}
                               inputMode={f.inputmode || (f.type === "email" ? "email" : undefined)}
                               placeholder={f.placeholder || ""}
                               value={formData[f.key] || ""}
                               onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
-                              style={{
-                                width: "100%",
-                                padding: isPassword ? "12px 44px 12px 14px" : "12px 14px",
-                                borderRadius: 10,
-                                background: "#f8fafc",
-                                border: "1px solid #e2e8ff",
-                                color: "#0f172a",
-                                fontFamily: "inherit",
-                                fontSize: ".88rem",
-                                fontWeight: 600,
-                                outline: "none",
-                              }}
+                              style={sharedStyle}
                             />
+                            )}
                             {isPassword && (
                               <button
                                 type="button"
