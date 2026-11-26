@@ -1298,6 +1298,101 @@ export default function GameDetailPage() {
 
       {game && <ReviewsSection gameSlug={game.slug} />}
       <SiteFooter />
+
+      {/* Sticky mobile summary — keep "Bayar" within thumb reach no matter
+          how far the customer has scrolled. Only renders on mobile (<=768px)
+          via CSS media query; desktop keeps the inline summary panel. Same
+          predicate as the full summary so it never appears before the form
+          is complete. */}
+      {selected && contactValid && inputFields.every((f) => !f.required || formData[f.key]?.trim()) && (
+        <div className="sticky-pay-bar">
+          <div className="sticky-pay-info">
+            {isVipEligibleGame && (
+              <span className="sticky-pay-vip">
+                <Star size={10} fill="#78350f" /> VIP · Hemat {fmtIDR(vipSaving)}
+              </span>
+            )}
+            <div className="sticky-pay-pack">{selected.name}</div>
+            <div className="sticky-pay-total">{fmtIDR(finalPrice)}</div>
+          </div>
+          <button
+            onClick={handlePayNow}
+            disabled={paying || !selected}
+            className="sticky-pay-btn"
+            aria-label="Bayar sekarang"
+          >
+            {paying ? <Clock size={16} /> : <CreditCard size={16} />}
+            <span>Bayar</span>
+          </button>
+        </div>
+      )}
+
+      <style jsx global>{`
+        .sticky-pay-bar {
+          display: none;
+        }
+        @media (max-width: 768px) {
+          .sticky-pay-bar {
+            display: flex;
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            z-index: 30;
+            background: #fff;
+            border-top: 1px solid #e2e8ff;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.18);
+            padding: 12px 14px calc(env(safe-area-inset-bottom) + 12px);
+            gap: 12px;
+            align-items: center;
+            animation: stickyPaySlideUp 0.28s cubic-bezier(.2,.9,.3,1);
+          }
+          body { padding-bottom: calc(env(safe-area-inset-bottom) + 92px) !important; }
+        }
+        @keyframes stickyPaySlideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        .sticky-pay-info {
+          flex: 1; min-width: 0;
+          display: flex; flex-direction: column; gap: 1px;
+        }
+        .sticky-pay-vip {
+          display: inline-flex; align-items: center; gap: 4px;
+          background: linear-gradient(90deg, #fbbf24, #f59e0b);
+          color: #78350f;
+          font-size: 10px; font-weight: 800; letter-spacing: .04em;
+          padding: 2px 8px; border-radius: 6px;
+          align-self: flex-start;
+          margin-bottom: 2px;
+        }
+        .sticky-pay-pack {
+          font-size: 12px; font-weight: 700; color: #0f172a;
+          line-height: 1.2;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .sticky-pay-total {
+          font-size: 19px; font-weight: 900; color: #2272dc;
+          letter-spacing: -0.02em;
+          font-variant-numeric: tabular-nums;
+        }
+        .sticky-pay-btn {
+          display: flex; align-items: center; gap: 6px;
+          padding: 13px 20px;
+          background: linear-gradient(135deg, #1452b4, #2272dc, #4a8dff);
+          color: #fff; border: 0; border-radius: 12px;
+          font-family: inherit; font-weight: 800; font-size: 14px;
+          cursor: pointer;
+          box-shadow: 0 6px 16px rgba(34, 114, 220, 0.42);
+          white-space: nowrap;
+          transition: transform .12s ease;
+        }
+        .sticky-pay-btn:disabled {
+          background: #e2e8ff; color: #64748b;
+          cursor: wait; box-shadow: none;
+        }
+        .sticky-pay-btn:active:not(:disabled) { transform: scale(0.97); }
+      `}</style>
     </>
   );
 }
