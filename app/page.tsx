@@ -430,9 +430,6 @@ export default function Home() {
                   <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Star size={22} fill="currentColor" /> {t("sec.special_offer")}
                   </h2>
-                  <div className="meta" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <Flame size={12} /> {t("sec.handled_by_skyra")}
-                  </div>
                 </div>
                 <div className="special-grid">
                   {games
@@ -452,9 +449,6 @@ export default function Home() {
                   <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Target size={22} /> {t("sec.joki_skyra")}
                   </h2>
-                  <div className="meta" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <Swords size={12} /> {t("sec.personal_service")}
-                  </div>
                 </div>
                 <div className="special-grid">
                   {games
@@ -475,9 +469,6 @@ export default function Home() {
                   <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Smartphone size={22} /> {t("sec.all_mobile")}
                   </h2>
-                  <div className="meta">
-                    {games.filter((g) => g.category === "mobile" && !g.is_special_offer).length} game
-                  </div>
                 </div>
                 <PaginatedGrid
                   items={games.filter((g) => g.category === "mobile" && !g.is_special_offer)}
@@ -493,9 +484,6 @@ export default function Home() {
                     <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Ticket size={22} /> {t("sec.voucher_pc")}
                     </h2>
-                    <div className="meta">
-                      {games.filter((g) => g.category === "voucher").length} voucher
-                    </div>
                   </div>
                   <PaginatedGrid
                     items={games.filter((g) => g.category === "voucher")}
