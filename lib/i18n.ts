@@ -200,7 +200,7 @@ const T: Record<string, string> = {
   "pack.gamg": "GAMG",
 
   // ─── Footer ───
-  "foot.desc": "Top-up game terpercaya untuk Sky: Children of the Light, Mobile Legends, Free Fire & lainnya. Hemat, instant, 24/7.",
+  "foot.desc": "Top-up game termurah & terpercaya di Indonesia — Mobile Legends, Sky, Free Fire, PUBG, Valorant & lainnya. Instant, aman, 24 jam, bayar via QRIS/Bank/E-Wallet.",
   "foot.col_service": "Layanan",
   "foot.col_help": "Bantuan",
   "foot.col_about": "Tentang",
