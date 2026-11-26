@@ -563,12 +563,10 @@ export default function GameDetailPage() {
                   boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                 }}
               >
-                <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span>1. {t("detail.step_input")}</span>
+                <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                  1. {t("detail.step_input")}
                   {inputFields.some((f) => f.required) && (
-                    <span style={{ fontSize: ".65rem", fontWeight: 700, color: "#dc2626", background: "#fee2e2", padding: "2px 8px", borderRadius: 6, letterSpacing: ".02em" }}>
-                      WAJIB DIISI
-                    </span>
+                    <span style={{ color: "#dc2626", fontSize: ".72rem", fontWeight: 700, marginLeft: 2 }}>*wajib</span>
                   )}
                 </h3>
                 <div style={{ display: "grid", gap: 12 }}>
@@ -677,11 +675,9 @@ export default function GameDetailPage() {
                     boxShadow: "0 10px 30px rgba(15,23,42,.18)",
                   }}
                 >
-                  <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span>{inputFields.length > 0 ? "2." : "1."} {t("detail.step_pack")}</span>
-                    <span style={{ fontSize: ".65rem", fontWeight: 700, color: "#dc2626", background: "#fee2e2", padding: "2px 8px", borderRadius: 6, letterSpacing: ".02em" }}>
-                      WAJIB DIISI
-                    </span>
+                  <h3 style={{ fontFamily: "'Fredoka'", fontWeight: 600, fontSize: "1.1rem", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                    {inputFields.length > 0 ? "2." : "1."} {t("detail.step_pack")}
+                    <span style={{ color: "#dc2626", fontSize: ".72rem", fontWeight: 700, marginLeft: 2 }}>*wajib</span>
                   </h3>
 
                   {/* Category filter pills — only show if 2+ categories */}
