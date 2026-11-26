@@ -24,7 +24,7 @@ const T: Record<string, string> = {
   // ─── Section Headers ───
   "sec.special_offer": "Special Offer",
   "sec.handled_by_skyra": "Handle by Skyra",
-  "sec.joki_skyra": "Joki Skyra",
+  "sec.joki_skyra": "Joki Games",
   "sec.personal_service": "Jasa Pribadi",
   "sec.all_mobile": "Semua Mobile Game",
   "sec.voucher_pc": "Voucher & PC Games",
