@@ -4,6 +4,7 @@ export const runtime = "edge";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { supabase, fmtIDR } from "@/lib/supabase";
 import {
   Clock, Wallet, Settings, CheckCircle2, XCircle, Hourglass, Ban,
@@ -36,6 +37,7 @@ type Order = {
   created_at: string;
   paid_at: string | null;
   fulfilled_at: string | null;
+  custom_data: Record<string, unknown> | null;
 };
 
 const STATUS_INFO: Record<string, { label: string; Icon: LucideIcon; color: string; desc: string }> = {
@@ -264,6 +266,76 @@ export default function OrderStatusPage() {
             <span style={{ color: "#2272dc", fontSize: "1.2rem" }}>{fmtIDR(order!.total_idr)}</span>
           </div>
         </div>
+
+        {/* Token PLN result card — only when PLN order is done and we captured
+            a token from UniPlay's confirm response. 20-digit code is useless
+            without a copy button, so it's front-and-center with one. */}
+        {order!.status === "done" && order!.custom_data && typeof (order!.custom_data as { pln_token?: string }).pln_token === "string" && (
+          <div
+            style={{
+              marginBottom: 14,
+              padding: "20px 22px",
+              borderRadius: 14,
+              background: "linear-gradient(135deg,#fef3c7,#fde68a)",
+              border: "1.5px solid #f59e0b",
+              boxShadow: "0 8px 24px rgba(245,158,11,.25)",
+            }}
+          >
+            <div style={{ fontSize: ".72rem", fontWeight: 800, color: "#78350f", letterSpacing: ".08em", marginBottom: 6 }}>
+              ⚡ TOKEN PLN KAMU
+            </div>
+            {typeof (order!.custom_data as { pln_customer_name?: string }).pln_customer_name === "string" && (
+              <div style={{ fontSize: ".82rem", color: "#78350f", fontWeight: 600, marginBottom: 10 }}>
+                a/n {(order!.custom_data as { pln_customer_name: string }).pln_customer_name}
+              </div>
+            )}
+            <div
+              style={{
+                padding: "14px 16px",
+                borderRadius: 10,
+                background: "#fff",
+                border: "1px dashed #f59e0b",
+                fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
+                fontSize: "1.15rem",
+                fontWeight: 800,
+                letterSpacing: ".08em",
+                color: "#78350f",
+                wordBreak: "break-all",
+                textAlign: "center",
+                marginBottom: 10,
+              }}
+            >
+              {(order!.custom_data as { pln_token: string }).pln_token}
+            </div>
+            <button
+              onClick={() => {
+                const token = (order!.custom_data as { pln_token: string }).pln_token;
+                navigator.clipboard.writeText(token).then(
+                  () => toast.success("Token PLN disalin ke clipboard"),
+                  () => toast.error("Gagal menyalin — coba select manual"),
+                );
+              }}
+              style={{
+                width: "100%",
+                padding: "10px 14px",
+                borderRadius: 10,
+                border: 0,
+                background: "#78350f",
+                color: "#fef3c7",
+                fontFamily: "inherit",
+                fontWeight: 800,
+                fontSize: ".86rem",
+                letterSpacing: ".02em",
+                cursor: "pointer",
+              }}
+            >
+              📋 Salin Token
+            </button>
+            <div style={{ fontSize: ".72rem", color: "#92400e", marginTop: 10, fontWeight: 600, lineHeight: 1.4 }}>
+              💡 Masukkan token di meter prabayar kamu. Simpan juga token ini sebagai bukti — kami tidak bisa generate ulang.
+            </div>
+          </div>
+        )}
 
         {/* Review (only when done) */}
         {order!.status === "done" && (
