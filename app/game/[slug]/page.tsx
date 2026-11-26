@@ -223,6 +223,14 @@ export default function GameDetailPage() {
   const selectedPrice = selected ? effectivePriceOf(selected) : 0;
   const subtotal = selected ? selectedPrice * effectiveQty : 0;
 
+  // VIP savings = selisih NON VIP vs VIP. Hanya ditampilkan di summary kalau
+  // user VIP eligible untuk game ini dan produk ini punya price_vip_idr yang
+  // beda dari price_idr.
+  const vipSaving = selected && isVipEligibleGame && selected.price_vip_idr && selected.price_vip_idr !== selected.price_idr
+    ? (selected.price_idr - selected.price_vip_idr) * effectiveQty
+    : 0;
+  const subtotalNonVip = selected ? selected.price_idr * effectiveQty : 0;
+
   const discountAmount = (() => {
     if (!voucherApplied || !subtotal) return 0;
     if (voucherApplied.discount_type === "percentage") {
@@ -1113,19 +1121,25 @@ export default function GameDetailPage() {
                 ...(isManualProduct
                   ? ([
                       [t("detail.qty_label"), `${qty}×`],
-                      [t("detail.subtotal"), fmtIDR(subtotal)],
+                      [t("detail.subtotal"), fmtIDR(vipSaving > 0 ? subtotalNonVip : subtotal)],
                     ] as [string, string][])
-                  : ([[t("detail.price"), selected ? fmtIDR(selectedPrice) : "Rp 0"]] as [string, string][])),
+                  : ([[t("detail.price"), selected ? fmtIDR(vipSaving > 0 ? subtotalNonVip : selectedPrice) : "Rp 0"]] as [string, string][])),
+                ...(vipSaving > 0
+                  ? ([[`Diskon VIP (${vip?.voucherCode})`, `-${fmtIDR(vipSaving)}`]] as [string, string][])
+                  : ([] as [string, string][])),
                 ...(voucherApplied
                   ? ([[`${t("detail.voucher_label")} (${voucherApplied.code})`, `-${fmtIDR(discountAmount)}`]] as [string, string][])
                   : ([] as [string, string][])),
                 [t("detail.admin_fee"), "Rp 0"],
-              ].map(([k, v]) => (
-                <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "#334155" }}>
-                  <span>{k}</span>
-                  <span style={{ color: voucherApplied && k.startsWith("Voucher") ? "#10b981" : "#0f172a", fontWeight: 800 }}>{v}</span>
-                </div>
-              ))}
+              ].map(([k, v]) => {
+                const isDiscount = (voucherApplied && k.startsWith("Voucher")) || k.startsWith("Diskon VIP");
+                return (
+                  <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", fontSize: ".86rem", fontWeight: 700, color: "#334155" }}>
+                    <span>{k}</span>
+                    <span style={{ color: isDiscount ? "#10b981" : "#0f172a", fontWeight: 800 }}>{v}</span>
+                  </div>
+                );
+              })}
               <div
                 style={{
                   borderTop: "1px solid #e2e8ff",

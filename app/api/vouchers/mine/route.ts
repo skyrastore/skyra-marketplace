@@ -26,7 +26,7 @@ export async function GET(req: Request) {
       voucher:vouchers!inner (
         code, title, description,
         discount_type, discount_value, max_discount_idr, min_purchase_idr,
-        is_active, expires_at
+        is_active, expires_at, vip_mode
       )
     `)
     .eq("user_id", user.user.id)
@@ -44,8 +44,11 @@ export async function GET(req: Request) {
     // typings but with !inner it's a single object. Cast locally.
     const voucherRaw = (row as unknown as { voucher: unknown }).voucher;
     const v = Array.isArray(voucherRaw)
-      ? (voucherRaw[0] as { is_active: boolean; expires_at: string | null } | undefined)
-      : (voucherRaw as { is_active: boolean; expires_at: string | null } | null);
+      ? (voucherRaw[0] as { is_active: boolean; expires_at: string | null; vip_mode?: boolean } | undefined)
+      : (voucherRaw as { is_active: boolean; expires_at: string | null; vip_mode?: boolean } | null);
+    // VIP vouchers aren't picked from the regular voucher dropdown — they're
+    // applied automatically via /api/me/vip. Hide from this listing.
+    if (v?.vip_mode) continue;
     if (row.used_at) {
       used.push(row);
     } else if (!v?.is_active || (v?.expires_at && new Date(v.expires_at).getTime() < now)) {
