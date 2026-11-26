@@ -41,7 +41,7 @@ const SNAP_JS_URL =
     : "https://app.sandbox.midtrans.com/snap/snap.js";
 const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "";
 
-type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean };
+type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean; hint?: string };
 
 // ─────────────────────────────────────────────
 // Product category classifier (name-based)
@@ -584,6 +584,12 @@ export default function GameDetailPage() {
                           </div>
                         );
                       })()}
+                      {f.hint && (
+                        <div style={{ marginTop: 6, fontSize: ".72rem", color: "#b45309", fontWeight: 600, display: "flex", alignItems: "flex-start", gap: 4, lineHeight: 1.4 }}>
+                          <Lightbulb size={12} style={{ marginTop: 2, flexShrink: 0 }} />
+                          <span>{f.hint}</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
