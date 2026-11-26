@@ -34,6 +34,7 @@ export type Product = {
   amount: number | null;
   unit: string | null;
   price_idr: number;
+  price_vip_idr: number | null;
   cost_idr: number | null;
   supplier: string;
   supplier_sku: string | null;

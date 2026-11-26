@@ -84,7 +84,7 @@ export async function POST(req: Request) {
 
     const { data: product, error: prodErr } = await supabaseAdmin
       .from("products")
-      .select("id, name, price_idr, supplier, supplier_sku, is_available, game_id")
+      .select("id, name, price_idr, price_vip_idr, supplier, supplier_sku, is_available, game_id")
       .eq("id", body.productId)
       .single();
 
@@ -92,19 +92,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Produk tidak tersedia" }, { status: 404 });
     }
 
-    // ─── Qty + subtotal ───
+    // ─── Qty ───
     const qty = product.supplier === "manual"
       ? Math.max(1, Math.min(100, Math.floor(Number(body.qty) || 1)))
       : 1;
-    const subtotal = product.price_idr * qty;
 
-    // ─── Voucher (if provided) ───
-    // If logged in, require the voucher to be in the user's claimed pool (so
-    // manually-typed codes outside the pool can't be abused). Guest checkout
-    // still falls back to the global code check.
+    // ─── VIP detection (via claimed vip_mode voucher) ───
+    // A VIP user owns an active voucher with vip_mode=true that lists this
+    // game's slug in game_slugs. If so, we price the order at price_vip_idr
+    // instead of price_idr (exact rate swap, no %/fixed discount applied).
+    let isVipOrder = false;
+    let vipVoucherCode: string | null = null;
+    if (userId && product.price_vip_idr) {
+      const { data: vipClaim } = await supabaseAdmin
+        .from("vouchers_claimed")
+        .select("voucher_code, voucher:vouchers!inner(code, is_active, vip_mode, game_slugs)")
+        .eq("user_id", userId)
+        .maybeSingle();
+      const v = (vipClaim as unknown as { voucher?: { is_active: boolean; vip_mode: boolean; game_slugs: string[] | null } } | null)?.voucher;
+      if (v?.is_active && v.vip_mode && (!v.game_slugs || v.game_slugs.length === 0 || v.game_slugs.includes(game.slug))) {
+        isVipOrder = true;
+        vipVoucherCode = (vipClaim as { voucher_code: string }).voucher_code;
+      }
+    }
+
+    // Price per unit: VIP price when eligible, otherwise NON VIP
+    const unitPrice = isVipOrder && product.price_vip_idr ? product.price_vip_idr : product.price_idr;
+    const subtotal = unitPrice * qty;
+
+    // ─── Regular voucher (non-VIP). Skip if VIP already applied — stacking
+    // regular voucher ON TOP of VIP rate is a loss leader we don't want. ───
     let voucherDiscount = 0;
-    let voucherCode: string | null = null;
-    if (body.voucherCode) {
+    let voucherCode: string | null = isVipOrder ? vipVoucherCode : null;
+    if (body.voucherCode && !isVipOrder) {
       const code = body.voucherCode.trim().toUpperCase();
       const { data: voucher } = await supabaseAdmin
         .from("vouchers")
@@ -113,7 +133,7 @@ export async function POST(req: Request) {
         .eq("is_active", true)
         .maybeSingle();
 
-      if (voucher) {
+      if (voucher && !voucher.vip_mode) {
         const now = new Date();
         const expired = voucher.expires_at && new Date(voucher.expires_at) < now;
         const maxed = voucher.max_uses && voucher.used_count >= voucher.max_uses;
@@ -207,13 +227,13 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: msg }, { status: 400 });
       }
 
-      // Mark voucher as used
-      if (voucherCode && userId) {
+      // Mark voucher as used — SKIP for VIP voucher (unlimited use)
+      if (voucherCode && userId && !isVipOrder) {
         await markVoucherUsed(userId, voucherCode, orderRow.id);
       }
 
       const newBalance = (txRes as { balance?: number } | null)?.balance ?? null;
-      return NextResponse.json({ orderCode, totalIdr: total, voucherDiscount, paid: true, newBalance });
+      return NextResponse.json({ orderCode, totalIdr: total, voucherDiscount, paid: true, newBalance, isVip: isVipOrder });
     }
 
     // ═══ BRANCH B: Midtrans Snap ═══
@@ -246,12 +266,12 @@ export async function POST(req: Request) {
     }
 
     // Reserve the voucher now (set used_at) so it can't be picked twice in
-    // overlapping Snap sessions. The notification handler bumps used_count.
-    if (voucherCode && userId) {
+    // overlapping Snap sessions. VIP vouchers skip this — unlimited use.
+    if (voucherCode && userId && !isVipOrder) {
       await markVoucherUsed(userId, voucherCode, orderRow.id);
     }
 
-    return NextResponse.json({ orderCode, snapToken, totalIdr: total, voucherDiscount });
+    return NextResponse.json({ orderCode, snapToken, totalIdr: total, voucherDiscount, isVip: isVipOrder });
   } catch (err) {
     console.error("Order create error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

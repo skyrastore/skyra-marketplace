@@ -93,6 +93,7 @@ export default function GameDetailPage() {
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [claimedVouchers, setClaimedVouchers] = useState<ClaimedVoucher[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<"midtrans" | "wallet">("midtrans");
+  const [vip, setVip] = useState<{ isVip: boolean; voucherCode?: string; gameSlugs?: string[] | null } | null>(null);
   // Derived string for display + API + WA fallback
   const phoneString = contact.kind === "phone" ? toPhoneString(contact) : "";
   const emailString = contact.kind === "email" ? contact.email : "";
@@ -132,16 +133,18 @@ export default function GameDetailPage() {
 
   // ─── Fetch wallet balance + claimed vouchers for signed-in user ───
   useEffect(() => {
-    if (!user) { setWalletBalance(null); setClaimedVouchers([]); return; }
+    if (!user) { setWalletBalance(null); setClaimedVouchers([]); setVip(null); return; }
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const headers = { Authorization: `Bearer ${session?.access_token ?? ""}` };
-      const [w, v] = await Promise.all([
+      const [w, v, vipRes] = await Promise.all([
         fetch("/api/wallet", { headers }).then((r) => r.json()),
         fetch("/api/vouchers/mine", { headers }).then((r) => r.json()),
+        fetch("/api/me/vip", { headers }).then((r) => r.json()),
       ]);
       setWalletBalance(Number(w.balance_idr ?? 0));
       setClaimedVouchers((v.active ?? []) as ClaimedVoucher[]);
+      setVip(vipRes);
     })();
   }, [user]);
 
@@ -211,7 +214,14 @@ export default function GameDetailPage() {
   // Qty hanya aktif buat manual products — UniPlay fulfill satu-per-order
   const isManualProduct = selected?.supplier === "manual";
   const effectiveQty = isManualProduct ? qty : 1;
-  const subtotal = selected ? selected.price_idr * effectiveQty : 0;
+
+  // VIP eligibility: user is VIP AND this game is in VIP voucher's game_slugs
+  // (or voucher's game_slugs is null = all games).
+  const isVipEligibleGame = !!(vip?.isVip && game && (!vip.gameSlugs || vip.gameSlugs.length === 0 || vip.gameSlugs.includes(game.slug)));
+  const effectivePriceOf = (p: Product) => (isVipEligibleGame && p.price_vip_idr ? p.price_vip_idr : p.price_idr);
+
+  const selectedPrice = selected ? effectivePriceOf(selected) : 0;
+  const subtotal = selected ? selectedPrice * effectiveQty : 0;
 
   const discountAmount = (() => {
     if (!voucherApplied || !subtotal) return 0;
@@ -484,6 +494,31 @@ export default function GameDetailPage() {
             </div>
           );
         })()}
+
+        {/* VIP banner — kalau user VIP + game eligible, show diskon aktif */}
+        {isVipEligibleGame && (
+          <div
+            style={{
+              marginBottom: 24,
+              padding: "14px 18px",
+              borderRadius: 14,
+              background: "linear-gradient(135deg,#fbbf24,#f59e0b,#d97706)",
+              color: "#fff",
+              boxShadow: "0 8px 24px rgba(245,158,11,.35)",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <Star size={22} fill="#fff" />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: ".95rem", fontFamily: "'Fredoka'" }}>Member VIP aktif ⭐</div>
+              <div style={{ fontSize: ".78rem", opacity: .95, fontWeight: 600 }}>
+                Harga di game ini otomatis pakai rate VIP ({vip?.voucherCode})
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Only show instructions if NOT just a website URL (sync sets "Website: ..." which is noise) */}
         {game.instructions && !/^(website:|https?:\/\/)/i.test(game.instructions.trim()) && (
@@ -775,9 +810,17 @@ export default function GameDetailPage() {
                                   fontWeight: 800,
                                   color: "#ea580c",
                                   letterSpacing: "-.01em",
+                                  display: "flex",
+                                  alignItems: "baseline",
+                                  gap: 6,
                                 }}
                               >
-                                {fmtIDR(p.price_idr)}
+                                {fmtIDR(effectivePriceOf(p))}
+                                {isVipEligibleGame && p.price_vip_idr && p.price_vip_idr !== p.price_idr && (
+                                  <span style={{ fontSize: ".65rem", fontWeight: 600, color: "#94a3b8", textDecoration: "line-through" }}>
+                                    {fmtIDR(p.price_idr)}
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </button>
@@ -851,7 +894,7 @@ export default function GameDetailPage() {
                     <Plus size={18} />
                   </button>
                   <div style={{ marginLeft: "auto", fontSize: ".9rem", fontWeight: 700, color: "#64748b" }}>
-                    {qty} × {fmtIDR(selected.price_idr)} = <span style={{ color: "#ea580c", fontWeight: 800 }}>{fmtIDR(subtotal)}</span>
+                    {qty} × {fmtIDR(selectedPrice)} = <span style={{ color: "#ea580c", fontWeight: 800 }}>{fmtIDR(subtotal)}</span>
                   </div>
                 </div>
               </div>
@@ -1072,7 +1115,7 @@ export default function GameDetailPage() {
                       [t("detail.qty_label"), `${qty}×`],
                       [t("detail.subtotal"), fmtIDR(subtotal)],
                     ] as [string, string][])
-                  : ([[t("detail.price"), selected ? fmtIDR(selected.price_idr) : "Rp 0"]] as [string, string][])),
+                  : ([[t("detail.price"), selected ? fmtIDR(selectedPrice) : "Rp 0"]] as [string, string][])),
                 ...(voucherApplied
                   ? ([[`${t("detail.voucher_label")} (${voucherApplied.code})`, `-${fmtIDR(discountAmount)}`]] as [string, string][])
                   : ([] as [string, string][])),
