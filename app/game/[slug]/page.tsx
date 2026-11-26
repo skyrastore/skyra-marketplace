@@ -512,7 +512,7 @@ export default function GameDetailPage() {
           >
             <Star size={22} fill="#fff" />
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: ".95rem", fontFamily: "'Fredoka'" }}>Member VIP aktif ⭐</div>
+              <div style={{ fontWeight: 800, fontSize: ".95rem", fontFamily: "'Fredoka'" }}>Member VIP aktif</div>
               <div style={{ fontSize: ".78rem", opacity: .95, fontWeight: 600 }}>
                 Harga di game ini otomatis pakai rate VIP ({vip?.voucherCode})
               </div>
