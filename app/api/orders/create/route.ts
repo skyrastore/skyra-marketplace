@@ -88,8 +88,11 @@ export async function POST(req: Request) {
       .eq("id", body.productId)
       .single();
 
-    if (prodErr || !product || product.game_id !== game.id || !product.is_available) {
-      return NextResponse.json({ error: "Produk tidak tersedia" }, { status: 404 });
+    if (prodErr || !product || product.game_id !== game.id) {
+      return NextResponse.json({ error: "Produk tidak ditemukan" }, { status: 404 });
+    }
+    if (!product.is_available) {
+      return NextResponse.json({ error: "Stok habis — item ini sedang tidak tersedia. Coba refresh halaman atau pilih denom lain." }, { status: 409 });
     }
 
     // ─── Qty ───
