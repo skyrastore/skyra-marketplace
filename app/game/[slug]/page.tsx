@@ -259,6 +259,7 @@ export default function GameDetailPage() {
           .select("*")
           .eq("game_id", g.id)
           .eq("is_available", true)
+          .order("sort_order", { ascending: true })
           .order("price_idr");
         setGame(g as Game);
         setProducts((p || []) as Product[]);
@@ -728,8 +729,20 @@ export default function GameDetailPage() {
                   )}
 
                   {filtered.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: 20, opacity: 0.7, fontSize: ".85rem" }}>
-                      {t("detail.step_pack")}…
+                    <div style={{
+                      textAlign: "center",
+                      padding: "28px 20px",
+                      background: "#fff7ed",
+                      border: "1.5px dashed #fdba74",
+                      borderRadius: 12,
+                      color: "#9a3412",
+                      fontSize: ".88rem",
+                      fontWeight: 700,
+                    }}>
+                      🚫 Stok habis — semua pilihan sedang tidak tersedia.<br />
+                      <span style={{ fontWeight: 600, fontSize: ".78rem", opacity: .85 }}>
+                        Admin lagi isi ulang saldo supplier, cek lagi 15-60 menit lagi ya 🙏
+                      </span>
                     </div>
                   ) : (
                     <div
