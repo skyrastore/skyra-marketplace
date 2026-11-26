@@ -87,7 +87,7 @@ export default function KuponPage() {
       <SiteNav />
       <main
         style={{
-          minHeight: "calc(100vh - 62px)",
+          minHeight: "calc(100dvh - 62px)",
           padding: "0 0 80px",
           background: "linear-gradient(180deg,#eff6ff 0%,#f8fafc 180px,#f8fafc 100%)",
           position: "relative",

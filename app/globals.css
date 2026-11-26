@@ -6,7 +6,7 @@
 /* overflow-x:clip instead of :hidden — hides horizontal overflow WITHOUT
    creating a scroll container that would break position:sticky on nav/
    search bar. */
-html,body{min-height:100vh;overflow-x:clip;font-family:'Inter',system-ui,-apple-system,sans-serif;color:#fff;background:#3a8ee8;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:'cv11','ss01','ss03'}
+html,body{min-height:100vh;min-height:100dvh;overflow-x:clip;font-family:'Inter',system-ui,-apple-system,sans-serif;color:#fff;background:#3a8ee8;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:'cv11','ss01','ss03'}
 
 /* ═══════════ shadcn/ui CSS variables (HSL) ═══════════ */
 @layer base {

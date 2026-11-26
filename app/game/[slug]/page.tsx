@@ -41,7 +41,7 @@ const SNAP_JS_URL =
     : "https://app.sandbox.midtrans.com/snap/snap.js";
 const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "";
 
-type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean; hint?: string };
+type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean; hint?: string; inputmode?: "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search" };
 
 // ─────────────────────────────────────────────
 // Product category classifier (name-based)
@@ -588,6 +588,7 @@ export default function GameDetailPage() {
                           <div style={{ position: "relative" }}>
                             <input
                               type={effType}
+                              inputMode={f.inputmode || (f.type === "email" ? "email" : undefined)}
                               placeholder={f.placeholder || ""}
                               value={formData[f.key] || ""}
                               onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}

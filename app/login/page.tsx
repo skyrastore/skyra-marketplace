@@ -25,7 +25,7 @@ export default function LoginPage() {
       <SiteNav />
       <main
         style={{
-          minHeight: "calc(100vh - 62px)",
+          minHeight: "calc(100dvh - 62px)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

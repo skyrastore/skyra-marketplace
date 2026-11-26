@@ -102,7 +102,7 @@ export default function SaldoPage() {
     <>
       {MIDTRANS_CLIENT_KEY && <Script src={SNAP_JS_URL} data-client-key={MIDTRANS_CLIENT_KEY} strategy="afterInteractive" />}
       <SiteNav />
-      <main style={{ minHeight: "calc(100vh - 62px)", padding: "28px 16px 80px", background: "#f8fafc" }}>
+      <main style={{ minHeight: "calc(100dvh - 62px)", padding: "28px 16px 80px", background: "#f8fafc" }}>
         <div style={{ maxWidth: 680, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#10b981,#059669)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 20px rgba(16,185,129,.3)" }}>
