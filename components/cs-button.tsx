@@ -16,6 +16,7 @@ export function CSButton() {
       {/* Popover card */}
       {open && (
         <div
+          data-cs-popover="true"
           style={{
             position: "fixed",
             right: 20,
@@ -78,6 +79,7 @@ export function CSButton() {
       {/* Floating FAB */}
       <button
         aria-label={t("cs.title")}
+        data-cs-fab="true"
         onClick={() => setOpen((o) => !o)}
         style={{
           position: "fixed",

@@ -42,6 +42,7 @@ export type Product = {
   is_hot: boolean;
   is_available: boolean;
   sort_order: number;
+  category: string | null;
 };
 
 // ─────────────────────────────────────────────

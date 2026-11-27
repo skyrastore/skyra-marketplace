@@ -44,11 +44,33 @@ const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "";
 type InputField = { key: string; label: string; type: string; placeholder?: string; required?: boolean; hint?: string; inputmode?: "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search"; options?: string[] };
 
 // ─────────────────────────────────────────────
-// Product category classifier (name-based)
-// Groups denoms into user-friendly tabs so long lists aren't a wall of text.
+// Product category classifier
+// Prefers products.category from DB (mirrors UniPlay's own section structure);
+// falls back to name-based heuristic for rows that have no DB category yet.
 // ─────────────────────────────────────────────
-// Returns key + Icon only — label is resolved at render time via t("pack.<key>")
-function categorizeProduct(name: string): { key: string; Icon: LucideIcon } {
+function iconForCategoryLabel(label: string): LucideIcon {
+  const l = label.toLowerCase();
+  if (l.includes("first")) return Gift;
+  if (l.includes("weekly")) return Calendar;
+  if (l.includes("monthly")) return CalendarDays;
+  if (l.includes("twilight")) return Moon;
+  if (l.includes("starlight")) return Star;
+  if (l.includes("battle") || l.includes("season") || l.includes("pass")) return Trophy;
+  if (l.includes("member")) return CreditCard;
+  if (l.includes("special") || l.includes("spesial")) return Star;
+  if (l.includes("bundle") || l.includes("gift")) return Gift;
+  if (l.includes("package") || l.includes("paket")) return Package;
+  if (l.includes("voucher")) return Ticket;
+  if (l.includes("diamond") || l.includes("crystal") || l.includes("gem")) return Gem;
+  return Gem;
+}
+
+function categorizeProduct(name: string, dbCategory?: string | null): { key: string; Icon: LucideIcon; label?: string } {
+  // DB wins — DB category is already aligned with UniPlay's own section headers
+  if (dbCategory && dbCategory.trim()) {
+    const label = dbCategory.trim();
+    return { key: label, Icon: iconForCategoryLabel(label), label };
+  }
   const n = name.toLowerCase();
   // Guard GAMG first — biar gak ketangkep "monthly" / "bundle" regex
   if (/\bgamg\b/.test(n)) return { key: "gamg", Icon: Lock };
@@ -671,18 +693,20 @@ export default function GameDetailPage() {
 
             {/* Step 2: Pick denom — with category filter */}
             {(() => {
-              // Compute categories present in this game's products
-              const cats = new Map<string, { Icon: LucideIcon; count: number }>();
+              // Compute categories present in this game's products.
+              // Keep insertion order (= DB sort_order) so sections match
+              // UniPlay's own ordering (Special Item first on games like MLBB/FF).
+              const cats = new Map<string, { Icon: LucideIcon; count: number; label?: string }>();
               for (const p of products) {
-                const c = categorizeProduct(p.name);
+                const c = categorizeProduct(p.name, p.category);
                 const cur = cats.get(c.key);
                 if (cur) cur.count++;
-                else cats.set(c.key, { Icon: c.Icon, count: 1 });
+                else cats.set(c.key, { Icon: c.Icon, count: 1, label: c.label });
               }
               const catList = Array.from(cats.entries()).map(([key, v]) => ({ key, ...v }));
               const activeCat = selectedCategory ?? catList[0]?.key ?? null;
               const filtered = activeCat
-                ? products.filter((p) => categorizeProduct(p.name).key === activeCat)
+                ? products.filter((p) => categorizeProduct(p.name, p.category).key === activeCat)
                 : products;
 
               return (
@@ -744,7 +768,7 @@ export default function GameDetailPage() {
                             ) : (
                               <c.Icon size={16} strokeWidth={2.2} />
                             )}
-                            <span>{t(`pack.${c.key}`)}</span>
+                            <span>{c.label ?? t(`pack.${c.key}`)}</span>
                             <span style={{ opacity: .5, fontSize: ".7rem" }}>({c.count})</span>
                           </button>
                         );
@@ -778,7 +802,7 @@ export default function GameDetailPage() {
                     >
                       {filtered.map((p) => {
                         const isSelected = selected?.id === p.id;
-                        const cat = categorizeProduct(p.name);
+                        const cat = categorizeProduct(p.name, p.category);
                         const itemImg = CATEGORY_ICON_URLS[cat.key];
                         return (
                           <button
@@ -1415,6 +1439,21 @@ export default function GameDetailPage() {
           cursor: wait; box-shadow: none;
         }
         .sticky-pay-btn:active:not(:disabled) { transform: scale(0.97); }
+
+        /* Chat FAB (components/cs-button.tsx) is position:fixed bottom:20.
+           Saat sticky-pay-bar visible, dua-duanya rebutan pojok kanan bawah
+           dan FAB nutupin tombol Bayar. Geser FAB ke atas sticky bar hanya
+           di mobile, hanya saat sticky bar benar-benar ter-render. Pakai
+           :has() — supported Chrome 105+ / Safari 15.4+, fallback: FAB tetep
+           di bawah (behavior lama). */
+        @media (max-width: 768px) {
+          body:has(.sticky-pay-bar) [data-cs-fab] {
+            bottom: calc(env(safe-area-inset-bottom) + 108px) !important;
+          }
+          body:has(.sticky-pay-bar) [data-cs-popover] {
+            bottom: calc(env(safe-area-inset-bottom) + 174px) !important;
+          }
+        }
       `}</style>
     </>
   );
